@@ -108,7 +108,7 @@ class PageFactory {
     /////////////////////////
 
     private function generateContent() {
-        $output;
+        $output = '';
         if ($this->http_code >= 400 && $this->http_code < 600) {
             $output = $this->generateErrorContent($this->http_code);
         } else if ($this->http_code == HttpCodes::REQUEST_VALID) {
@@ -117,7 +117,7 @@ class PageFactory {
                 $output .= '<div class="content">'.$entry.'</div><br />';
             }
             unset($entry);
-            $output .= this->generatePageFooter();
+            $output .= $this->generatePageFooter();
         }
         return $output;
     }
@@ -141,8 +141,8 @@ class PageFactory {
     }
 
     private function generatePageFooter() {
-        $output = '</body></html>'
-        return $output
+        $output = '</body></html>';
+        return $output;
     }
 
     /////////////////////////
