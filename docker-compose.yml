@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:14
+    volumes:
+    - pgData:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+  pgadmin:
+    container_name: pgadmin4
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    restart: unless-stopped
+    ports:
+      - "5050:80"
+  thaumaturge:
+    container_name: thaumaturge
+    image: php:7-apache
+    volumes:
+      - ./resources:/var/www/html/
+    ports:
+      - 8080:80
+volumes:
+  pgData:
