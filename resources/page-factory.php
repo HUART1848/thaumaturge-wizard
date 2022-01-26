@@ -59,11 +59,18 @@ class PageFactory {
     }
 
     /**
+     * Formats data to link (<a> tag)
+     */
+    public function makeLink($name, $link, $path) {
+        return "<a href=\"" . $path . $link . "\">" . $name . "</a>";
+    }
+
+    /**
      * Adds a link (<a> tag) to the page
      * Final format: <a href="$link">$name</a>
      */
     public function addLinkToPage($name, $link, $path) {
-        $this->addValueToPage("<a href=\"" . $path . $link . "\">" . $name . "</a>");
+        $this->addValueToPage($this->makeLink($name, $link, $path));
     }
 
     /**
