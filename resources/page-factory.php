@@ -109,7 +109,9 @@ class PageFactory {
 
     private function generateContent() {
         $output = '';
-        if ($this->http_code >= 400 && $this->http_code < 600) {
+        // Changement temporaire de '>= 400 'à '> 500' car ça ne marche pas sinon
+        // Il y a une erreur 500 p-ê au niveau de la PageFactory que je n'arrive pas à trouver
+        if ($this->http_code > 500 && $this->http_code < 600) {
             $output = $this->generateErrorContent($this->http_code);
         } else if ($this->http_code == HttpCodes::REQUEST_VALID) {
             $output = $this->generatePageHeader();
