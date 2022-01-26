@@ -13,6 +13,7 @@ $metrics = array(
 );
 
 $page = new PageFactory();
+$page->setHttpCode(HttpCodes::REQUEST_VALID);
 
 $page->addValueToPage("<h1>Métriques</h1>");
 $page->addValueToPage("<p>Vous trouverez ci-dessous la liste des métriques.");
