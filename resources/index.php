@@ -3,7 +3,8 @@
 require_once(__DIR__ . "/page-factory.php");
 
 $features = array(
-    "Métriques" => "metrics.php"
+    "Métriques" => "metrics.php",
+    "Données des membres et des tournois" => "data_access.php"
 );
 
 $page = new PageFactory();
