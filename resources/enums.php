@@ -10,6 +10,11 @@ abstract class ThemeColors {
     const LIGHT_COLOR = '#f5f5f5';
 }
 
+abstract class LinkColors {
+    const LIGHT_LINK_COLOR = "#00d5ff";
+    const DARK_LINK_COLOR = "#00596b";
+}
+
 abstract class HttpCodes {
     const REQUEST_VALID = 200;
     const BAD_REQUEST = 400;

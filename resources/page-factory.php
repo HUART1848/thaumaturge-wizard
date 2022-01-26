@@ -1,6 +1,6 @@
 <?php
 
-require_once('./enums.php');
+require_once(__DIR__ . '/enums.php');
 
 // Class-specific exceptions
 class DisplayModeException extends Exception {}
@@ -12,6 +12,7 @@ class PageFactory {
 
     private $bgndColor;
     private $textColor;
+    private $linkColor;
     private $title;
     private $http_code;
     private $content;
@@ -42,7 +43,7 @@ class PageFactory {
     /////////////////////////
 
     /**
-     * Addsa  text or numeric value to the page.
+     * Adds a text or numeric value to the page.
      * Final format: <div class="content">$pushable</div>
      */
     public function addValueToPage($pushable) {
@@ -58,13 +59,21 @@ class PageFactory {
     }
 
     /**
-     * Adds a list of links (<ul> of <a>) to the page.
-     * Final format: <ul><li><a href="$path$value">$key</a></li> `for each entry` </ul>
+     * Adds a link (<a> tag) to the page
+     * Final format: <a href="$link">$name</a>
      */
-    public function addLinkListToPage($path, $list) {
+    public function addLinkToPage($name, $link, $path) {
+        $this->addValueToPage("<a href=\"" . $path . $link . "\">" . $name . "</a>");
+    }
+
+    /**
+     * Adds a list of links (<ul> of <a>) to the page.
+     * Final format: <ul><li><a href="$path$value">$key</a></li> **for each entry** </ul>
+     */
+    public function addLinkListToPage($list, $path) {
         $this->addValueToPage("<ul>");
             foreach($list as $key => $value) {
-                $this->addValueToPage("<li><a href=\"" . $path . $value . "\">" . $key . "</a></li>");
+                $this->addLinkToPage($key, $value, $path);
             }
         $this->addValueToPage("</ul>");
     }
@@ -85,10 +94,12 @@ class PageFactory {
             case DisplayModes::LIGHT_THEME :
                 $this->bgndColor = ThemeColors::LIGHT_COLOR;
                 $this->textColor = ThemeColors::DARK_COLOR;
+                $this->linkColor = LinkColors::DARK_LINK_COLOR;
                 break;
             case DisplayModes::DARK_THEME :
                 $this->bgndColor = ThemeColors::DARK_COLOR;
                 $this->textColor = ThemeColors::LIGHT_COLOR;
+                $this->linkColor = LinkColors::LIGHT_LINK_COLOR;
                 break;
             default:
                 throw new DisplayModeException('Unknown display mode');
@@ -149,8 +160,9 @@ class PageFactory {
         $output  .= '<title>'.$this->title.'</title>';
         $output  .= '<style> body { ';
         $output  .= 'background-color: ' . $this->bgndColor . '; ';
-        $output  .= 'color: '. $this->textColor . ';';
-        $output  .= '} </style></head><body>';
+        $output  .= 'color: '. $this->textColor . ';}';
+        $output  .= "a { color: " . $this->linkColor . ";}";
+        $output  .= '</style></head><body>';
         return $output;
     }
 

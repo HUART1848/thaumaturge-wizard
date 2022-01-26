@@ -1,5 +1,6 @@
 <?php
-require_once("./page-factory.php");
+
+require_once(__DIR__ . "/page-factory.php");
 
 $metrics_path = "metrics/";
 $metrics = array(
@@ -16,7 +17,9 @@ $page = new PageFactory();
 $page->addValueToPage("<h1>Métriques</h1>");
 $page->addValueToPage("<p>Vous trouverez ci-dessous la liste des métriques.");
 
-$page->addLinkListToPage($metrics_path, $metrics);
+$page->addLinkToPage("Retour à l'accueil", "index.php", "");
+$page->addLinkListToPage($metrics, $metrics_path);
 
 $page->getInstance()->render();
+
 ?>
