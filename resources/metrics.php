@@ -1,9 +1,22 @@
 <?php
 require_once("./page-factory.php");
 
-$metrics_page = new PageFactory();
-$metrics_page->addKeyValueToPage("bruh", "coucou");
+$metrics_path = "metrics/";
+$metrics = array(
+    "Performance personnelle par format" => "personal-performance.php",
+    "Meilleurs joueurs par format" => "best-players-per-format.php",
+    "Meilleurs joueurs tout formats confondus" => "best-players-overall.php",
+    "Formats de tournois les plus populaires" => "tournaments-format-popularity.php",
+    "Mois de l'année les plus actifs" => "months-activity.php",
+    "Tournois les plus populaires" => "tournaments-popularity.php"
+);
 
-$ok = $metrics_page->getInstance();
-var_dump($ok);
+$page = new PageFactory();
+
+$page->addValueToPage("<h1>Métriques</h1>");
+$page->addValueToPage("<p>Vous trouverez ci-dessous la liste des métriques.");
+
+$page->addLinkListToPage($metrics_path, $metrics);
+
+$page->getInstance()->render();
 ?>

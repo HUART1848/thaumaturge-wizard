@@ -58,6 +58,18 @@ class PageFactory {
     }
 
     /**
+     * Adds a list of links (<ul> of <a>) to the page.
+     * Final format: <ul><li><a href="$path$value">$key</a></li> `for each entry` </ul>
+     */
+    public function addLinkListToPage($path, $list) {
+        $this->addValueToPage("<ul>");
+            foreach($list as $key => $value) {
+                $this->addValueToPage("<li><a href=\"" . $path . $value . "\">" . $key . "</a></li>");
+            }
+        $this->addValueToPage("</ul>");
+    }
+
+    /**
      * Set page title
      */
     public function setTitle($title) {
@@ -116,7 +128,7 @@ class PageFactory {
         } else { //if ($this->http_code == HttpCodes::REQUEST_VALID) {
             $output = $this->generatePageHeader();
             foreach ($this->content as $entry) {
-                $output .= '<div class="content">'.$entry.'</div><br />';
+                $output .= '<div class="content">'.$entry.'</div>';
             }
             unset($entry);
             $output .= $this->generatePageFooter();
