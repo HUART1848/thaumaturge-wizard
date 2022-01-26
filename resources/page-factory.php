@@ -131,12 +131,12 @@ class PageFactory {
 
     private function generatePageHeader() {
         $output  = '<html>';
-        $output  = '<head>';
-        $output  = '<title>'.$this->title.'</title>';
-        $output  = '<style> body { ';
-        $output  = 'background-color: ' . $this->bgndColor . '; ';
-        $output  = 'color: '. $this->textColor . ';';
-        $output  = '} </style></head><body>';
+        $output  .= '<head>';
+        $output  .= '<title>'.$this->title.'</title>';
+        $output  .= '<style> body { ';
+        $output  .= 'background-color: ' . $this->bgndColor . '; ';
+        $output  .= 'color: '. $this->textColor . ';';
+        $output  .= '} </style></head><body>';
         return $output;
     }
 
