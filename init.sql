@@ -91,10 +91,20 @@ BEGIN
 END
 $BODY$;
 
-CREATE OR REPLACE PROCEDURE setJoueurAsParticipant(_nom_personne TEXT, _id_tournoi SMALLINT)
+CREATE OR REPLACE PROCEDURE setJoueurAsParticipant(_idpersonne SMALLINT , _idtournoi SMALLINT, _nomdudeck TEXT, _cardlist TEXT)
 LANGUAGE plpgsql 
 AS $BODY$ 
 BEGIN
-	INSERT INTO membre()
+	INSERT INTO membre(_idpersonne) VALUES (_idpersonne);
+	INSERT INTO tournoimembreparticipant(idmembre, idtournoi, nomdudeck, cardlist) VALUES (_idpersonne, _idtournoi, _nomdudeck, _cardlist);
+END
+$BODY$;
+
+CREATE OR REPLACE PROCEDURE setJoueurAsOrganisateur(_idpersonne SMALLINT, _idtournoi SMALLINT)
+LANGUAGE plpgsql
+AS $BODY$ 
+BEGIN 
+	INSERT INTO membre(_idpersonne) VALUES (_idpersonne);
+	INSERT INTO tournoimembreorganisateur(idorg, idtournoi) VALUES (_idpersonne, _idtournoi);
 END
 $BODY$;
