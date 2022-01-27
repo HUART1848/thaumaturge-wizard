@@ -5,7 +5,6 @@ require_once(__DIR__ . "/page-factory.php");
 $metrics_path = "data_consultation/";
 $metrics = array(
     "Juges" => "judge.php",
-    "Matches" => "match.php",
     "Joueurs" => "player.php",
     "Tournois" => "tournament.php",
     "Duels" => "duel.php"
