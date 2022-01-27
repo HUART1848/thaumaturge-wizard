@@ -44,7 +44,7 @@
 			'Standard', 128, 2);
 		
 /* 6*/ INSERT INTO tournoi (nom, dateheuredebut, dateheurefin, delaiadmin, format, echellenbjoueur, idadresse)
-	VALUES ('Tournoi de la guilde Vaudoise',
+	VALUES ('Tournoi de la guilde vaudoise',
 			'2022-03-30 12:00',
 			'2022-04-05 12:00',
 			'2022-04-20 00:00',
