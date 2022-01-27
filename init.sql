@@ -83,7 +83,7 @@
 
 		
 /** PROCEDURES **/
-CREATE OR REPLACE PROCEDURE ajoutePersonne(_nom TEXT, _prenom TEXT, _ville TEXT, _adresse TEXT)
+CREATE OR REPLACE PROCEDURE createPersonne(_nom TEXT, _prenom TEXT, _ville TEXT)
 LANGUAGE plpgsql
 AS $BODY$
 BEGIN 
@@ -91,20 +91,36 @@ BEGIN
 END
 $BODY$;
 
-CREATE OR REPLACE PROCEDURE setJoueurAsParticipant(_idpersonne SMALLINT , _idtournoi SMALLINT, _nomdudeck TEXT, _cardlist TEXT)
+CREATE OR REPLACE PROCEDURE createParticipantFromPersonne(_idpersonne SMALLINT , _idtournoi SMALLINT, _nomdudeck TEXT, _cardlist TEXT)
 LANGUAGE plpgsql 
 AS $BODY$ 
 BEGIN
-	INSERT INTO membre(_idpersonne) VALUES (_idpersonne);
+	INSERT INTO membre(idpersonne) VALUES (_idpersonne);
 	INSERT INTO tournoimembreparticipant(idmembre, idtournoi, nomdudeck, cardlist) VALUES (_idpersonne, _idtournoi, _nomdudeck, _cardlist);
 END
 $BODY$;
 
-CREATE OR REPLACE PROCEDURE setJoueurAsOrganisateur(_idpersonne SMALLINT, _idtournoi SMALLINT)
+CREATE OR REPLACE PROCEDURE createOrganisateurFromPersonne(_idpersonne SMALLINT, _idtournoi SMALLINT)
 LANGUAGE plpgsql
 AS $BODY$ 
 BEGIN 
-	INSERT INTO membre(_idpersonne) VALUES (_idpersonne);
+	INSERT INTO membre(idpersonne) VALUES (_idpersonne);
 	INSERT INTO tournoimembreorganisateur(idorg, idtournoi) VALUES (_idpersonne, _idtournoi);
+END
+$BODY$;
+
+CREATE OR REPLACE PROCEDURE createJugeFromPersonne(_idpersonne SMALLINT, _experience INT)
+LANGUAGE plpgsql
+AS $BODY$ 
+BEGIN
+	INSERT INTO juge(idpersonne, experience) VALUES (_idpersonne, _experience);
+END
+$BODY$;
+
+CREATE OR REPLACE PROCEDURE assignJudgeToTournoi(_idpersonne SMALLINT, _idtournoi INT)
+LANGUAGE plpgsql
+AS $BODY$ 
+BEGIN
+	INSERT INTO tournoijuge(idjuge, idtournoi) VALUES (_idpersonne, _idtournoi);
 END
 $BODY$;
