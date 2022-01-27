@@ -198,14 +198,14 @@ ALTER TABLE TournoiMembreParticipant ADD CONSTRAINT FK_TournoiJuge_idTournoi
 /* FUNCTIONS                                                          */
 /* ------------------------------------------------------------------ */ 
 
-CREATE FUNCTION juge_level(id integer)
+CREATE OR REPLACE FUNCTION juge_level(id integer)
 	RETURNS integer
 	LANGUAGE plpgsql
 	AS
 	$BODY$
 	DECLARE 
 		juge_level integer;
-		juge_exp integer
+		juge_exp integer;
 	BEGIN
 		SELECT Juge.experience INTO juge_exp
 		FROM juge 
@@ -217,13 +217,12 @@ CREATE FUNCTION juge_level(id integer)
 		THEN RETURN 1;
 		ELSEIF juge_exp <= 300
 		THEN RETURN 2;
-		ELSE
-		THEN RETURN 3;
+		ELSE RETURN 3;
 		END IF;
 	END;
-	$BODY$ 
+	$BODY$;
 
-CREATE FUNCTION juge_max_simultane(id integer)
+CREATE OR REPLACE FUNCTION juge_max_simultane(id integer)
 	RETURNS integer
 	LANGUAGE plpgsql
 	AS
@@ -240,7 +239,7 @@ CREATE FUNCTION juge_max_simultane(id integer)
 /* TRIGGERS                                                           */
 /* ------------------------------------------------------------------ */
 
-CREATE FUNCTION check_valid_duel()
+CREATE OR REPLACE FUNCTION check_valid_duel()
 	RETURNS TRIGGER 
 	LANGUAGE plpgsql
 AS
@@ -254,8 +253,8 @@ BEGIN
 					OR duel.idjoueurdeux = TournoiMembreParticipant.idmembre)
 		) <> 1
 	THEN 
-		RAISE EXCEPTION 'Un des joeuers n''est pas inscrit au tournoi '
-	END IF
+		RAISE EXCEPTION 'Un des joeuers n''est pas inscrit au tournoi';
+	END IF;
 	IF (SELECT count(*)
 		FROM Duel
 			INNER JOIN TournoiJuge
@@ -263,8 +262,8 @@ BEGIN
 				AND duel.idjuge = TournoiJuge.idmembre
 		) <> 1
 	THEN 
-		RAISE EXCEPTION 'Ce juge doit être inscrit au tournoi pour juger ce duel'
-	END IF
+		RAISE EXCEPTION 'Ce juge doit être inscrit au tournoi pour juger ce duel';
+	END IF;
 	IF (SELECT count(*)
 		FROM Duel 
 		WHERE NEW.idjuge = idjuge
@@ -272,8 +271,8 @@ BEGIN
 			AND NEW.idTournoi = idTournoi
 		) > juge_max_simultane(NEW.idJuge)
 	THEN 
-		RAISE EXCEPTION 'Ce juge ne peut pas juger plus de duel durant ce round'
-	END IF
+		RAISE EXCEPTION 'Ce juge ne peut pas juger plus de duel durant ce round';
+	END IF;
 	IF (SELECT count(*)
 		FROM Duel 
 		WHERE (NEW.idJoueurUn = idJoueurUn OR NEW.idJoueurDeux = idJoueurDeux)
@@ -281,13 +280,15 @@ BEGIN
 			AND NEW.idTournoi = idTournoi
 		) > 1
 	THEN 
-		RAISE EXCEPTION 'Un joueur ne peut pas participer à plus d''un duel à la fois'
-END
+		RAISE EXCEPTION 'Un joueur ne peut pas participer à plus d''un duel à la fois';
+	END IF;
+	RETURN NULL;
+END;
 $BODY$;
 
 CREATE TRIGGER on_new_or_change_duel
 AFTER INSERT OR UPDATE ON Duel
-FOR EACH ROW check_valid_duel();
+FOR EACH ROW EXECUTE FUNCTION check_valid_duel();
 
 
 
