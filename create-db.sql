@@ -1,8 +1,8 @@
 
 
-/* ------------------------------------------------------------------ */ 
+/* ------------------------------------------------------------------ */
 /* DECLARATION                                                        */
-/* ------------------------------------------------------------------ */ 
+/* ------------------------------------------------------------------ */
 
 DROP TABLE IF EXISTS Adresse CASCADE;
 CREATE TABLE Adresse (
@@ -63,7 +63,7 @@ CREATE TABLE Tournoi (
 	id SMALLSERIAL,
 	nom TEXT NOT NULL,
 	dateHeureDebut TIMESTAMP NOT NULL,
-	dateHeureFin TIMESTAMP NOT NULL CONSTRAINT time_check CHECK (dateHeureFin > dateHeureDebut), 
+	dateHeureFin TIMESTAMP NOT NULL CONSTRAINT time_check CHECK (dateHeureFin > dateHeureDebut),
 	delaiAdmin TIME NOT NULL,
 	format TEXT NOT NULL,
 	echelleNbJoueur SMALLINT NOT NULL,
@@ -94,9 +94,9 @@ CREATE TABLE TournoiJuge (
 	PRIMARY KEY (idJuge, idTournoi)
 );
 
-/* ------------------------------------------------------------------ */ 
+/* ------------------------------------------------------------------ */
 /* CONSTRAINTS                                                        */
-/* ------------------------------------------------------------------ */ 
+/* ------------------------------------------------------------------ */
 
 ALTER TABLE Juge ADD CONSTRAINT idPersonne
      FOREIGN KEY (idPersonne)
@@ -113,91 +113,91 @@ ALTER TABLE Membre ADD CONSTRAINT FK_Membre_idPersonne
 ALTER TABLE Personne ADD CONSTRAINT FK_Personne_idAdresse
 	FOREIGN KEY (idAdresse)
 	REFERENCES Adresse (id)
-	ON DELETE SET NULL 
+	ON DELETE SET NULL
 	ON UPDATE CASCADE;
-	
+
 ALTER TABLE Tournoi ADD CONSTRAINT FK_Tournoi_idAdresse
 	FOREIGN KEY (idAdresse)
 	REFERENCES Adresse (id)
-	ON DELETE SET NULL 
+	ON DELETE SET NULL
 	ON UPDATE CASCADE;
-	
+
 ALTER TABLE Manche ADD CONSTRAINT FK_Manche_idTournoi
 	FOREIGN KEY (idTournoi)
 	REFERENCES Tournoi (id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
-	
+
 ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idManche
 	FOREIGN KEY (idManche, idTournoi)
 	REFERENCES Manche (id, idTournoi)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
-	
+
 ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idJoueurUn
 	FOREIGN KEY (idJoueurUn)
 	REFERENCES Membre (idPersonne)
-	ON DELETE NO ACTION 
+	ON DELETE NO ACTION
 	ON UPDATE CASCADE;
-	
+
 ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idJoueurDeux
 	FOREIGN KEY (idJoueurDeux)
 	REFERENCES Membre (idPersonne)
-	ON DELETE NO ACTION 
+	ON DELETE NO ACTION
 	ON UPDATE CASCADE;
-	
+
 ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idGagnant
 	FOREIGN KEY (idGagnant)
 	REFERENCES Membre (idPersonne)
-	ON DELETE NO ACTION 
+	ON DELETE NO ACTION
 	ON UPDATE CASCADE;
 
 ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idJuge
 	FOREIGN KEY (idJuge)
 	REFERENCES Juge (idPersonne)
-	ON DELETE NO ACTION 
+	ON DELETE NO ACTION
 	ON UPDATE CASCADE;
 
 ALTER TABLE tournoiJuge ADD CONSTRAINT FK_TournoiJuge_idJuge
 	FOREIGN KEY (idJuge)
 	REFERENCES Juge (idPersonne)
-	ON DELETE NO ACTION 
+	ON DELETE NO ACTION
 	ON UPDATE CASCADE;
 
 ALTER TABLE tournoiJuge ADD CONSTRAINT FK_TournoiJuge_idTournoi
 	FOREIGN KEY (idTournoi)
 	REFERENCES Tournoi (id)
-	ON DELETE CASCADE 
+	ON DELETE CASCADE
 	ON UPDATE CASCADE;
 
 ALTER TABLE TournoiMembreOrganisateur ADD CONSTRAINT FK_TournoiJuge_idOtg
 	FOREIGN KEY (idOrg)
 	REFERENCES Membre (idPersonne)
-	ON DELETE NO ACTION 
+	ON DELETE NO ACTION
 	ON UPDATE CASCADE;
 
 ALTER TABLE TournoiMembreOrganisateur ADD CONSTRAINT FK_TournoiJuge_idTournoi
 	FOREIGN KEY (idTournoi)
 	REFERENCES Tournoi (id)
-	ON DELETE CASCADE 
+	ON DELETE CASCADE
 	ON UPDATE CASCADE;
 
 ALTER TABLE TournoiMembreParticipant ADD CONSTRAINT FK_TournoiJuge_idMembre
 	FOREIGN KEY (idMembre)
 	REFERENCES Membre (idPersonne)
-	ON DELETE NO ACTION 
+	ON DELETE NO ACTION
 	ON UPDATE CASCADE;
 
 ALTER TABLE TournoiMembreParticipant ADD CONSTRAINT FK_TournoiJuge_idTournoi
 	FOREIGN KEY (idTournoi)
 	REFERENCES Tournoi (id)
-	ON DELETE CASCADE 
+	ON DELETE CASCADE
 	ON UPDATE CASCADE;
 
 
 /*TODO lien tournoi DONE
-/*TODO EA à jour
-/*TODO duel à jour Done
-/*TODO clé étrangère bien nommée DONE
-/*TODO ON DELETE à jour (peut-être pas CASCADE) DONE
+/*TODO EA Ã  jour
+/*TODO duel Ã  jour Done
+/*TODO clÃ© Ã©trangÃ¨re bien nommÃ©e DONE
+/*TODO ON DELETE Ã  jour (peut-Ãªtre pas CASCADE) DONE
 /*TODO CHECK dates DONE*/
