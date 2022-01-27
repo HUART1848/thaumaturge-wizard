@@ -194,10 +194,4 @@ ALTER TABLE TournoiMembreParticipant ADD CONSTRAINT FK_TournoiJuge_idTournoi
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
 
-
-/*TODO lien tournoi DONE
-/*TODO EA à jour
-/*TODO duel à jour Done
-/*TODO clé étrangère bien nommée DONE
-/*TODO ON DELETE à jour (peut-être pas CASCADE) DONE
-/*TODO CHECK dates DONE*/
+/*TODO EA à jour*/
