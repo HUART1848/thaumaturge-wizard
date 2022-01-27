@@ -31,7 +31,7 @@ CREATE TABLE Juge (
 DROP TABLE IF EXISTS Membre CASCADE;
 CREATE TABLE Membre (
 	idPersonne SMALLINT,
-	numeroMembre INT NOT NULL,
+	numeroMembre SMALLSERIAL NOT NULL,
 	PRIMARY KEY(idPersonne)
 );
 
@@ -66,7 +66,7 @@ CREATE TABLE Tournoi (
 	dateHeureFin TIMESTAMP NOT NULL CONSTRAINT time_check CHECK (dateHeureFin > dateHeureDebut), 
 	delaiAdmin TIME NOT NULL,
 	format TEXT NOT NULL,
-	echelleNbJoueur SMALLINT NOT NULL,
+	echelleNbJoueur SMALLINT NOT NULL CONSTRAINT scale_check CHECK (echelleNbJoueur = 8 OR echelleNbJoueur = 16 OR echelleNbJoueur = 32 OR echelleNbJoueur = 64),
 	idAdresse SMALLINT NOT NULL,
 	PRIMARY KEY (id)
 );
@@ -196,7 +196,75 @@ ALTER TABLE TournoiMembreParticipant ADD CONSTRAINT FK_TournoiJuge_idTournoi
 
 /* ------------------------------------------------------------------ */ 
 /* FUNCTIONS                                                          */
-/* ------------------------------------------------------------------ */ 
+/* ------------------------------------------------------------------ */
+
+CREATE OR REPLACE FUNCTION niveau_min_de_juge_total(echelle integer)
+	RETURNS integer
+	LANGUAGE plpgsql
+	AS
+	$BODY$
+	DECLARE 
+		rounds integer;
+	BEGIN
+		
+		IF echelle = 8
+		THEN RETURN 1;
+		ELSEIF echelle = 16
+		THEN RETURN 2;
+		ELSEIF echelle = 32
+		THEN RETURN 4;
+		ELSEIF echelle = 64
+		THEN RETURN 8;
+		ELSE RETURN -1;
+		END IF;
+	END;
+	$BODY$;
+
+
+CREATE OR REPLACE FUNCTION nb_rounds(echelle integer)
+	RETURNS integer
+	LANGUAGE plpgsql
+	AS
+	$BODY$
+	DECLARE 
+		rounds integer;
+	BEGIN
+		
+		IF echelle = 8
+		THEN RETURN 3;
+		ELSEIF echelle = 16
+		THEN RETURN 4;
+		ELSEIF echelle = 32
+		THEN RETURN 5;
+		ELSEIF echelle = 64
+		THEN RETURN 6;
+		ELSE RETURN -1;
+		END IF;
+	END;
+	$BODY$;
+
+
+CREATE OR REPLACE FUNCTION nb_joueur_min(echelle integer)
+	RETURNS integer
+	LANGUAGE plpgsql
+	AS
+	$BODY$
+	DECLARE 
+		joueurs_min integer;
+	BEGIN
+		
+		IF echelle = 8
+		THEN RETURN 4;
+		ELSEIF echelle = 16
+		THEN RETURN 9;
+		ELSEIF echelle = 32
+		THEN RETURN 17;
+		ELSEIF echelle = 64
+		THEN RETURN 33;
+		ELSE RETURN -1;
+		END IF;
+	END;
+	$BODY$;
 
 CREATE OR REPLACE FUNCTION juge_level(id integer)
 	RETURNS integer
