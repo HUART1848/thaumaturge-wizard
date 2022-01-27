@@ -55,6 +55,7 @@ CREATE TABLE Manche (
 	idTournoi SMALLINT,
 	dateHeureDebut TIMESTAMP NOT NULL,
 	duree INTERVAL NOT NULL,
+	CONSTRAINT duree_check CHECK (duree < INTERVAL '50m'),
 	PRIMARY KEY (id, idTournoi)
 );
 
@@ -63,11 +64,13 @@ CREATE TABLE Tournoi (
 	id SMALLSERIAL,
 	nom TEXT NOT NULL,
 	dateHeureDebut TIMESTAMP NOT NULL,
-	dateHeureFin TIMESTAMP NOT NULL CONSTRAINT time_check CHECK (dateHeureFin > dateHeureDebut), 
+	dateHeureFin TIMESTAMP NOT NULL, 
 	delaiAdmin TIME NOT NULL,
 	format TEXT NOT NULL,
-	echelleNbJoueur SMALLINT NOT NULL CONSTRAINT scale_check CHECK (echelleNbJoueur = 8 OR echelleNbJoueur = 16 OR echelleNbJoueur = 32 OR echelleNbJoueur = 64),
+	echelleNbJoueur SMALLINT NOT NULL , /* peut aussi être considerer come le nombre max de joueur */
 	idAdresse SMALLINT NOT NULL,
+	CONSTRAINT time_check CHECK (dateHeureFin > dateHeureDebut AND (dateHeureDebut - dateHeureFin) > (INTERVAL '80m' * nb_rounds(echelleNbJoueur) + INTERVAL '60m')),
+	CONSTRAINT scale_check CHECK (echelleNbJoueur = 8 OR echelleNbJoueur = 16 OR echelleNbJoueur = 32 OR echelleNbJoueur = 64),
 	PRIMARY KEY (id)
 );
 
@@ -307,6 +310,30 @@ CREATE OR REPLACE FUNCTION juge_max_simultane(id integer)
 /* TRIGGERS                                                           */
 /* ------------------------------------------------------------------ */
 
+/* MANCHE TRIGGER */
+CREATE OR REPLACE FUNCTION check_valid_manche()
+	RETURNS TRIGGER 
+	LANGUAGE plpgsql
+AS
+$BODY$
+BEGIN 
+	IF (SELECT count(*)
+		FROM Manche
+			WHERE NEW.idTournoi = idTournoi 
+				AND NEW.dateHeureDebut < dateHeureDebut + duree
+		) > 0
+	THEN 
+		RAISE EXCEPTION 'Une manche ne peut commacer tant que la dernière n''est pas terminée';
+	END IF;
+	RETURN NULL;
+END;
+$BODY$;
+
+CREATE TRIGGER on_new_or_change_round
+AFTER INSERT OR UPDATE ON Manche
+FOR EACH ROW EXECUTE FUNCTION check_valid_manche();
+
+/* DUEL TRIGGER */
 CREATE OR REPLACE FUNCTION check_valid_duel()
 	RETURNS TRIGGER 
 	LANGUAGE plpgsql
@@ -357,7 +384,6 @@ $BODY$;
 CREATE TRIGGER on_new_or_change_duel
 AFTER INSERT OR UPDATE ON Duel
 FOR EACH ROW EXECUTE FUNCTION check_valid_duel();
-
 
 
 
