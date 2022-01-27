@@ -1,10 +1,13 @@
 /** ADRESSES **/
-/*1*/ INSERT INTO adresse (ville, pays) VALUES ('Yverdon-les-Bains', 'Suisse');
-/*2*/ INSERT INTO adresse (ville, pays) VALUES ('Lausanne', 'Suisse');
-/*3*/ INSERT INTO adresse (ville, pays) VALUES ('Bienne', 'Suisse');
-/*4*/ INSERT INTO adresse (ville, pays) VALUES ('Fribourg', 'Suisse');
-/*5*/ INSERT INTO adresse (ville, pays) VALUES ('Paris', 'France');
-/*6*/ INSERT INTO adresse (ville, pays) VALUES ('Kyiv', 'Ukraine');
+/* 1*/ INSERT INTO adresse (ville, pays) VALUES ('Yverdon-les-Bains', 'Suisse');
+/* 2*/ INSERT INTO adresse (ville, pays) VALUES ('Lausanne', 'Suisse');
+/* 3*/ INSERT INTO adresse (ville, pays) VALUES ('Bienne', 'Suisse');
+/* 4*/ INSERT INTO adresse (ville, pays) VALUES ('Fribourg', 'Suisse');
+/* 5*/ INSERT INTO adresse (ville, pays) VALUES ('Paris', 'France');
+/* 6*/ INSERT INTO adresse (ville, pays) VALUES ('Kyiv', 'Ukraine');
+/* 8*/ INSERT INTO adresse (ville, pays) VALUES ('Kharkiv', 'Ukraine');
+/* 9*/ INSERT INTO adresse (ville, pays) VALUES ('Sion', 'Suisse');
+/*10*/ INSERT INTO adresse (ville, pays) VALUES ('Sarcelles', 'France');
 
 
 /** TOURNOIS **/
@@ -77,3 +80,19 @@
 			'2022-07-03 19:00',
 			'2022-07-17 00:00',
 			'Standard', 16, 1);
+
+		
+/**MEMBRE ET JUGES**/
+CREATE OR REPLACE PROCEDURE addUser(
+	_nom TEXT,
+	_prenom TEXT,
+	_adresse TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+	INSERT INTO personne(nom, prenom, adresse) VALUES (_nom, _prenom, (SELECT id FROM adresse WHERE adresse.nom = _adresse));
+	COMMIT
+END;$$
+
+CALL addUser('Bob', 'Michel', 'Yverdon-les-Bains');
