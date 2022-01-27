@@ -82,8 +82,8 @@
 			'Standard', 8, 1);
 
 		
-/**MEMBRE ET JUGES**/
-CREATE OR REPLACE PROCEDURE addUser(_nom TEXT, _prenom TEXT, _ville TEXT, )
+/** PROCEDURES **/
+CREATE OR REPLACE PROCEDURE ajoutePersonne(_nom TEXT, _prenom TEXT, _ville TEXT, _adresse TEXT)
 LANGUAGE plpgsql
 AS $BODY$
 BEGIN 
@@ -91,15 +91,20 @@ BEGIN
 END
 $BODY$;
 
-/*
-call addUser('Weiss', 'Gilbert-Benjamin', 'Yverdon-les-Bains');
-call addUser('Lefort', 'Alfred', 'Yverdon-les-Bains');
-call addUser('de Robert','Théodore', 'Yverdon-les-Bains');
-call addUser('Martins', 'Édouard', 'Lausanne');
-call addUser('De Oliveira-Vincent', 'Céline', 'Lausanne');
-call addUser('Lebrun', 'Maurine', 'Lausanne');
-call addUser(''
-call addUser(
-call addUser(
-call addUser(
-*/
+CREATE OR REPLACE PROCEDURE setJoueurAsParticipant(_idpersonne SMALLINT , _idtournoi SMALLINT, _nomdudeck TEXT, _cardlist TEXT)
+LANGUAGE plpgsql 
+AS $BODY$ 
+BEGIN
+	INSERT INTO membre(_idpersonne) VALUES (_idpersonne);
+	INSERT INTO tournoimembreparticipant(idmembre, idtournoi, nomdudeck, cardlist) VALUES (_idpersonne, _idtournoi, _nomdudeck, _cardlist);
+END
+$BODY$;
+
+CREATE OR REPLACE PROCEDURE setJoueurAsOrganisateur(_idpersonne SMALLINT, _idtournoi SMALLINT)
+LANGUAGE plpgsql
+AS $BODY$ 
+BEGIN 
+	INSERT INTO membre(_idpersonne) VALUES (_idpersonne);
+	INSERT INTO tournoimembreorganisateur(idorg, idtournoi) VALUES (_idpersonne, _idtournoi);
+END
+$BODY$;
