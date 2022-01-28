@@ -348,7 +348,7 @@ BEGIN
 					OR duel.idjoueurdeux = TournoiMembreParticipant.idmembre)
 		) <> 1
 	THEN 
-		RAISE EXCEPTION 'Un des joeuers n''est pas inscrit au tournoi';
+		RAISE EXCEPTION 'Un des joueuers n''est pas inscrit au tournoi';
 	END IF;
 	IF (SELECT count(*)
 		FROM Duel
@@ -385,7 +385,79 @@ CREATE TRIGGER on_new_or_change_duel
 AFTER INSERT OR UPDATE ON Duel
 FOR EACH ROW EXECUTE FUNCTION check_valid_duel();
 
+/* Exclusion jouer - juge/organisateur */
+/* joueur */
+CREATE OR REPLACE FUNCTION check_valid_TournoiMembreParticipant()
+	RETURNS TRIGGER 
+	LANGUAGE plpgsql
+AS
+$BODY$
+BEGIN 
+	IF (SELECT count(*)
+		FROM TournoiMembreParticipant
+			LEFT JOIN TournoiJuge
+				ON TournoiMembreParticipant.idtournoi = TournoiJuge.idtournoi 
+				AND TournoiMembreParticipant.idmembre = TournoiJuge.idjuge
+			LEFT JOIN TournoiMembreOrganisateur 
+				ON TournoiMembreParticipant.idtournoi = TournoiMembreOrganisateur.idtournoi 
+				AND TournoiMembreParticipant.idmembre = TournoiMembreOrganisateur.idorg 
+		WHERE TournoiJuge.idjuge IS NOT NULL OR TournoiMembreOrganisateur.idorg IS NOT NULL
+		) > 0
+	THEN 
+		RAISE EXCEPTION 'On ne peut pas participer à un tournoi qu''on organise et/ou juge';
+	END IF;
+	RETURN NULL;
+END;
+$BODY$;
 
+CREATE TRIGGER on_new_or_change_TournoiMemebreJoueur
+AFTER INSERT OR UPDATE ON TournoiMemebreJoueur
+FOR EACH ROW EXECUTE FUNCTION check_valid_TournoiMemebreJoueur();
 
+/* juge */
+CREATE OR REPLACE FUNCTION check_valid_TournoiJuge()
+	RETURNS TRIGGER 
+	LANGUAGE plpgsql
+AS
+$BODY$
+BEGIN 
+	IF (SELECT count(*)
+		FROM TournoiJuge
+			INNER JOIN TournoiMembreParticipant
+				ON TournoiMembreParticipant.idtournoi = TournoiJuge.idtournoi 
+				AND TournoiMembreParticipant.idmembre = TournoiJuge.idjuge
+		) > 0
+	THEN 
+		RAISE EXCEPTION 'On ne peut pas juge d''un tournoi auquel on participe';
+	END IF;
+	RETURN NULL;
+END;
+$BODY$;
 
-/*TODO EA à jour*/
+CREATE TRIGGER on_new_or_change_TournoiJuge
+AFTER INSERT OR UPDATE ON TournoiJuge
+FOR EACH ROW EXECUTE FUNCTION check_valid_TournoiJuge();
+
+/* joueur */
+CREATE OR REPLACE FUNCTION check_valid_TournoiMembreOrganisateur()
+	RETURNS TRIGGER 
+	LANGUAGE plpgsql
+AS
+$BODY$
+BEGIN 
+	IF (SELECT count(*)
+		FROM TournoiMembreOrganisateur
+			INNER JOIN TournoiMembreParticipant 
+				ON TournoiMembreParticipant.idtournoi = TournoiMembreOrganisateur.idtournoi 
+				AND TournoiMembreParticipant.idmembre = TournoiMembreOrganisateur.idorg 
+		) > 0
+	THEN 
+		RAISE EXCEPTION 'On ne peut pas être organisateur d''un tournoi auquel on participe';
+	END IF;
+	RETURN NULL;
+END;
+$BODY$;
+
+CREATE TRIGGER on_new_or_change_TournoiMembreOrganisateur
+AFTER INSERT OR UPDATE ON TournoiMembreOrganisateur
+FOR EACH ROW EXECUTE FUNCTION check_valid_TournoiMembreOrganisateur();
