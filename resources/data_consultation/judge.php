@@ -47,7 +47,7 @@ function getJudgeList() {
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, //set PDO to throw exceptions on error
             PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL, //NULL values are returned as PHP null's
         ]);
-        $judgeList = [];
+        $dataList = [];
         $result = $dbh->exec('SET search_path TO wizard');
         $stmt = $dbh->query('
             SELECT Personne.nom, Personne.prenom, Juge.idPersonne
@@ -55,13 +55,13 @@ function getJudgeList() {
             INNER JOIN Personne ON Juge.idPersonne = Personne.id
             ');
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $judgeList[] = [
+            $dataList[] = [
                 'nom' => $row['nom'],
                 'prenom' => $row['prenom'],
                 'id' => $row['idpersonne']
             ];
         }
-        return $judgeList;
+        return $dataList;
     } catch(PDOException $e) {
         die('Unable to get judge list: ' . $e->getMessage());
     }
@@ -73,7 +73,7 @@ function getJudgeDetails($id) {
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, //set PDO to throw exceptions on error
             PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL, //NULL values are returned as PHP null's
         ]);
-        $duelList = [];
+        $dataList = [];
         $result = $dbh->exec('SET search_path TO wizard');
         $stmt = $dbh->query('
         SELECT Personne.nom, Personne.prenom, Juge.idPersonne, Juge.experience, Adresse.ville, Adresse.pays
@@ -82,7 +82,7 @@ function getJudgeDetails($id) {
             INNER JOIN Adresse ON Personne.idAdresse = Adresse.id;
             ');
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $duelList[] = [
+            $dataList[] = [
                 'nom' => $row['nom'],
                 'prenom' => $row['prenom'],
                 'experience' => $row['experience'],
@@ -92,7 +92,7 @@ function getJudgeDetails($id) {
             ];
         }
 
-        return $duelList;
+        return $dataList;
     } catch(PDOException $e) {
         die('Unable to get judge: ' . $e->getMessage());
     }
