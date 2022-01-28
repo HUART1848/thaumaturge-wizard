@@ -292,7 +292,9 @@ CREATE OR REPLACE FUNCTION Juge_level(id integer)
 			THEN RETURN 1;
 		ELSEIF juge_exp <= 300
 			THEN RETURN 2;
-		ELSE RETURN 3;
+		ELSEIF juge_exp >= 0 
+			THEN RETURN 3;
+		ELSE RETURN NULL;
 		END IF;
 	
 	END;
@@ -340,7 +342,7 @@ CREATE OR REPLACE FUNCTION niveau_juges_tournoi(id integer)
 		niveau_juges integer;
 	BEGIN
 		
-		SELECT SUM(juge_level(Juge.experience)) INTO niveau_juges
+		SELECT SUM(juge_level(Juge.idPersonne)) INTO niveau_juges
 		FROM Juge
 			INNER JOIN TournoiJuge
 				ON TournoiJuge.idJuge = Juge.idPersonne
