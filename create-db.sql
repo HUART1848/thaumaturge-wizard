@@ -553,7 +553,7 @@ BEGIN
 		FROM TournoiJuge
 			INNER JOIN TournoiMembreParticipant
 				ON TournoiMembreParticipant.idTournoi = NEW.idTournoi 
-				AND TournoiMembreParticipant.idJuge = NEW.idJuge
+				AND TournoiMembreParticipant.idMembre = NEW.idJuge
 		) > 0
 	THEN 
 		RAISE EXCEPTION 'On ne peut pas juge d''un tournoi auquel on participe';
