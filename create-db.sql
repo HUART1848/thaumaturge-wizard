@@ -44,8 +44,8 @@ CREATE TABLE Duel (
 	idJoueurUn SMALLINT NOT NULL,
 	idJoueurDeux SMALLINT NOT NULL,
 	idGagnant SMALLINT,
-	CONSTRAINT gagnant_check CHECK (idGagnant = NULL OR idGagnant = idJoueurUn OR idGagnant = idJoueurDeux),
-	CONSTRAINT joueurs_check CHECK (idJoueurUn <> idJoueurDeux),
+	CONSTRAINT CK_Duel_idGagant CHECK (idGagnant = NULL OR idGagnant = idJoueurUn OR idGagnant = idJoueurDeux),
+	CONSTRAINT CK_Duel_idJoueurUn_idJoueurDeux CHECK (idJoueurUn <> idJoueurDeux),
 	PRIMARY KEY (id, idManche, idTournoi)
 );
 
@@ -55,7 +55,7 @@ CREATE TABLE Manche (
 	idTournoi SMALLINT,
 	dateHeureDebut TIMESTAMP NOT NULL,
 	duree INTERVAL NOT NULL,
-	CONSTRAINT duree_check CHECK (duree < INTERVAL '50m'),
+	CONSTRAINT CK_Manche_duree CHECK (duree < INTERVAL '50m'),
 	PRIMARY KEY (id, idTournoi)
 );
 
@@ -69,8 +69,8 @@ CREATE TABLE Tournoi (
 	format TEXT NOT NULL,
 	echelleNbJoueur SMALLINT NOT NULL , /* peut aussi être considerer come le nombre max de joueur */
 	idAdresse SMALLINT NOT NULL,
-	CONSTRAINT time_check CHECK (dateHeureFin > dateHeureDebut AND (dateHeureFin - dateHeureDebut) < (INTERVAL '80m' * nb_rounds(echelleNbJoueur) + INTERVAL '60m')),
-	CONSTRAINT scale_check CHECK (echelleNbJoueur = 8 OR echelleNbJoueur = 16 OR echelleNbJoueur = 32 OR echelleNbJoueur = 64),
+	CONSTRAINT CK_Tournoi_dateHeureDebut_dateHeureFin CHECK (dateHeureFin > dateHeureDebut AND (dateHeureDebut - dateHeureFin) > (INTERVAL '80m' * nb_rounds(echelleNbJoueur) + INTERVAL '60m')),
+	CONSTRAINT CK_Tournoi_echelleNbJoueur CHECK (echelleNbJoueur = 8 OR echelleNbJoueur = 16 OR echelleNbJoueur = 32 OR echelleNbJoueur = 64),
 	PRIMARY KEY (id)
 );
 
@@ -201,7 +201,7 @@ ALTER TABLE TournoiMembreParticipant ADD CONSTRAINT FK_TournoiJuge_idTournoi
 /* FUNCTIONS                                                          */
 /* ------------------------------------------------------------------ */
 
-CREATE OR REPLACE FUNCTION niveau_min_de_juge_total(echelle integer)
+CREATE OR REPLACE FUNCTION niveau_min_de_Juge_total(echelle integer)
 	RETURNS integer
 	LANGUAGE plpgsql
 	AS
@@ -224,7 +224,7 @@ CREATE OR REPLACE FUNCTION niveau_min_de_juge_total(echelle integer)
 	$BODY$;
 
 
-CREATE OR REPLACE FUNCTION nb_rounds(echelle integer)
+CREATE OR REPLACE FUNCTION nb_Rounds(echelle integer)
 	RETURNS integer
 	LANGUAGE plpgsql
 	AS
@@ -247,7 +247,7 @@ CREATE OR REPLACE FUNCTION nb_rounds(echelle integer)
 	$BODY$;
 
 
-CREATE OR REPLACE FUNCTION nb_joueur_min(echelle integer)
+CREATE OR REPLACE FUNCTION nb_Joueur_min(echelle integer)
 	RETURNS integer
 	LANGUAGE plpgsql
 	AS
@@ -269,7 +269,7 @@ CREATE OR REPLACE FUNCTION nb_joueur_min(echelle integer)
 	END;
 	$BODY$;
 
-CREATE OR REPLACE FUNCTION juge_level(id integer)
+CREATE OR REPLACE FUNCTION Juge_level(id integer)
 	RETURNS integer
 	LANGUAGE plpgsql
 	AS
@@ -293,7 +293,7 @@ CREATE OR REPLACE FUNCTION juge_level(id integer)
 	END;
 	$BODY$;
 
-CREATE OR REPLACE FUNCTION juge_max_simultane(id integer)
+CREATE OR REPLACE FUNCTION Juge_max_simultane(id integer)
 	RETURNS integer
 	LANGUAGE plpgsql
 	AS
@@ -311,7 +311,7 @@ CREATE OR REPLACE FUNCTION juge_max_simultane(id integer)
 /* ------------------------------------------------------------------ */
 
 /* MANCHE TRIGGER */
-CREATE OR REPLACE FUNCTION check_valid_manche()
+CREATE OR REPLACE FUNCTION check_valid_Manche()
 	RETURNS TRIGGER 
 	LANGUAGE plpgsql
 AS
@@ -320,21 +320,22 @@ BEGIN
 	IF (SELECT count(*)
 		FROM Manche
 			WHERE NEW.idTournoi = idTournoi 
-				AND NEW.dateHeureDebut < dateHeureDebut + duree
+				AND NEW.id <> id 
+				AND NEW.dateHeureDebut BETWEEN dateheuredebut AND dateHeureDebut + duree
 		) > 0
 	THEN 
-		RAISE EXCEPTION 'Une manche ne peut commacer tant que la dernière n''est pas terminée';
+		RAISE EXCEPTION 'Une manche ne peut commancer durant une autre manche';
 	END IF;
 	RETURN NULL;
 END;
 $BODY$;
 
-CREATE TRIGGER on_new_or_change_round
+CREATE OR REPLACE TRIGGER on_new_or_change_Manche
 AFTER INSERT OR UPDATE ON Manche
-FOR EACH ROW EXECUTE FUNCTION check_valid_manche();
+FOR EACH ROW EXECUTE FUNCTION check_valid_Manche();
 
 /* DUEL TRIGGER */
-CREATE OR REPLACE FUNCTION check_valid_duel()
+CREATE OR REPLACE FUNCTION check_valid_Duel()
 	RETURNS TRIGGER 
 	LANGUAGE plpgsql
 AS
@@ -381,11 +382,12 @@ BEGIN
 END;
 $BODY$;
 
-CREATE TRIGGER on_new_or_change_duel
+CREATE OR REPLACE TRIGGER on_new_or_change_Duel
 AFTER INSERT OR UPDATE ON Duel
-FOR EACH ROW EXECUTE FUNCTION check_valid_duel();
+FOR EACH ROW EXECUTE FUNCTION check_valid_Duel();
 
-/* Exclusion jouer - juge/organisateur */
+/* Exclusion jouer - juge/organisateur et exclusion d'inbscription à des tournois simultané*/
+
 /* joueur */
 CREATE OR REPLACE FUNCTION check_valid_TournoiMembreParticipant()
 	RETURNS TRIGGER 
@@ -396,11 +398,11 @@ BEGIN
 	IF (SELECT count(*)
 		FROM TournoiMembreParticipant
 			LEFT JOIN TournoiJuge
-				ON TournoiMembreParticipant.idtournoi = TournoiJuge.idtournoi 
-				AND TournoiMembreParticipant.idmembre = TournoiJuge.idjuge
+				ON NEW.idtournoi = TournoiJuge.idtournoi 
+				AND NEW.idmembre = TournoiJuge.idjuge
 			LEFT JOIN TournoiMembreOrganisateur 
-				ON TournoiMembreParticipant.idtournoi = TournoiMembreOrganisateur.idtournoi 
-				AND TournoiMembreParticipant.idmembre = TournoiMembreOrganisateur.idorg 
+				ON NEW.idtournoi = TournoiMembreOrganisateur.idtournoi 
+				AND NEW.idmembre = TournoiMembreOrganisateur.idorg 
 		WHERE TournoiJuge.idjuge IS NOT NULL OR TournoiMembreOrganisateur.idorg IS NOT NULL
 		) > 0
 	THEN 
@@ -410,7 +412,7 @@ BEGIN
 END;
 $BODY$;
 
-CREATE TRIGGER on_new_or_change_TournoiMembreParticipant
+CREATE OR REPLACE TRIGGER on_new_or_change_TournoiMembreParticipant
 AFTER INSERT OR UPDATE ON TournoiMembreParticipant
 FOR EACH ROW EXECUTE FUNCTION check_valid_TournoiMembreParticipant();
 
@@ -424,8 +426,8 @@ BEGIN
 	IF (SELECT count(*)
 		FROM TournoiJuge
 			INNER JOIN TournoiMembreParticipant
-				ON TournoiMembreParticipant.idtournoi = TournoiJuge.idtournoi 
-				AND TournoiMembreParticipant.idmembre = TournoiJuge.idjuge
+				ON TournoiMembreParticipant.idtournoi = NEW.idtournoi 
+				AND TournoiMembreParticipant.idmembre = NEW.idjuge
 		) > 0
 	THEN 
 		RAISE EXCEPTION 'On ne peut pas juge d''un tournoi auquel on participe';
@@ -434,7 +436,7 @@ BEGIN
 END;
 $BODY$;
 
-CREATE TRIGGER on_new_or_change_TournoiJuge
+CREATE OR REPLACE TRIGGER on_new_or_change_TournoiJuge
 AFTER INSERT OR UPDATE ON TournoiJuge
 FOR EACH ROW EXECUTE FUNCTION check_valid_TournoiJuge();
 
@@ -448,8 +450,8 @@ BEGIN
 	IF (SELECT count(*)
 		FROM TournoiMembreOrganisateur
 			INNER JOIN TournoiMembreParticipant 
-				ON TournoiMembreParticipant.idtournoi = TournoiMembreOrganisateur.idtournoi 
-				AND TournoiMembreParticipant.idmembre = TournoiMembreOrganisateur.idorg 
+				ON TournoiMembreParticipant.idtournoi = NEW.idtournoi 
+				AND TournoiMembreParticipant.idmembre = NEW.idorg 
 		) > 0
 	THEN 
 		RAISE EXCEPTION 'On ne peut pas être organisateur d''un tournoi auquel on participe';
@@ -458,6 +460,7 @@ BEGIN
 END;
 $BODY$;
 
-CREATE TRIGGER on_new_or_change_TournoiMembreOrganisateur
+CREATE OR REPLACE TRIGGER on_new_or_change_TournoiMembreOrganisateur
 AFTER INSERT OR UPDATE ON TournoiMembreOrganisateur
 FOR EACH ROW EXECUTE FUNCTION check_valid_TournoiMembreOrganisateur();
+
