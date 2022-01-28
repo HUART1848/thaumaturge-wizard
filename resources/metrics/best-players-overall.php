@@ -8,6 +8,8 @@ $page->setHttpCode(HttpCodes::REQUEST_VALID);
 $page->addValueToPage("<h1>Meilleurs joueurs tout formats confondus</h1>");
 $page->addLinkToPage("Retour aux métriques", "metrics.php", "../");
 
+
+
 $page->getInstance()->render();
 
 ?>
