@@ -286,7 +286,7 @@ CREATE OR REPLACE FUNCTION Juge_level(id integer)
 		FROM Juge
 		WHERE Juge.idPersonne = id;
 	
-		IF juge_exp <= 3
+		IF juge_exp < 15 /* à la fin d'um tournoi on gagne 5 pts si on y était juge, un juge de lvl 0 doit faire 3 tournoi avant de "vraiment devenir juge" */
 			THEN RETURN 0;
 		ELSEIF juge_exp <= 100
 			THEN RETURN 1;
