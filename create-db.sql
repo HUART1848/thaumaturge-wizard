@@ -69,7 +69,6 @@ CREATE TABLE Tournoi (
 	format TEXT NOT NULL,
 	echelleNbJoueur SMALLINT NOT NULL , /* peut aussi être considerer come le nombre max de joueur */
 	idAdresse SMALLINT NOT NULL,
-	CONSTRAINT CK_Tournoi_dateHeureDebut_dateHeureFin CHECK (dateHeureFin > dateHeureDebut AND (dateHeureFin - dateHeureDebut) > (INTERVAL '80m' * nb_rounds(echelleNbJoueur) + INTERVAL '60m')),
 	CONSTRAINT CK_Tournoi_echelleNbJoueur CHECK (echelleNbJoueur = 8 OR echelleNbJoueur = 16 OR echelleNbJoueur = 32 OR echelleNbJoueur = 64),
 	PRIMARY KEY (id)
 );
@@ -96,106 +95,6 @@ CREATE TABLE TournoiJuge (
 	idTournoi SMALLINT,
 	PRIMARY KEY (idJuge, idTournoi)
 );
-
-/* ------------------------------------------------------------------ */
-/* CONSTRAINTS                                                        */
-/* ------------------------------------------------------------------ */
-
-ALTER TABLE Juge ADD CONSTRAINT idPersonne
-     FOREIGN KEY (idPersonne)
-     REFERENCES Personne (id)
-	 ON DELETE CASCADE
-     ON UPDATE CASCADE;
-
-ALTER TABLE Membre ADD CONSTRAINT FK_Membre_idPersonne
-     FOREIGN KEY (idPersonne)
-     REFERENCES Personne (id)
-     ON DELETE CASCADE
-     ON UPDATE CASCADE;
-
-ALTER TABLE Personne ADD CONSTRAINT FK_Personne_idAdresse
-	FOREIGN KEY (idAdresse)
-	REFERENCES Adresse (id)
-	ON DELETE SET NULL
-	ON UPDATE CASCADE;
-
-ALTER TABLE Tournoi ADD CONSTRAINT FK_Tournoi_idAdresse
-	FOREIGN KEY (idAdresse)
-	REFERENCES Adresse (id)
-	ON DELETE SET NULL
-	ON UPDATE CASCADE;
-
-ALTER TABLE Manche ADD CONSTRAINT FK_Manche_idTournoi
-	FOREIGN KEY (idTournoi)
-	REFERENCES Tournoi (id)
-	ON DELETE CASCADE
-	ON UPDATE CASCADE;
-
-ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idManche
-	FOREIGN KEY (idManche, idTournoi)
-	REFERENCES Manche (id, idTournoi)
-	ON DELETE CASCADE
-	ON UPDATE CASCADE;
-
-ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idJoueurUn
-	FOREIGN KEY (idJoueurUn)
-	REFERENCES Membre (idPersonne)
-	ON DELETE NO ACTION
-	ON UPDATE CASCADE;
-
-ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idJoueurDeux
-	FOREIGN KEY (idJoueurDeux)
-	REFERENCES Membre (idPersonne)
-	ON DELETE NO ACTION
-	ON UPDATE CASCADE;
-
-ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idGagnant
-	FOREIGN KEY (idGagnant)
-	REFERENCES Membre (idPersonne)
-	ON DELETE NO ACTION
-	ON UPDATE CASCADE;
-
-ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idJuge
-	FOREIGN KEY (idJuge)
-	REFERENCES Juge (idPersonne)
-	ON DELETE NO ACTION
-	ON UPDATE CASCADE;
-
-ALTER TABLE TournoiJuge ADD CONSTRAINT FK_TournoiJuge_idJuge
-	FOREIGN KEY (idJuge)
-	REFERENCES Juge (idPersonne)
-	ON DELETE NO ACTION
-	ON UPDATE CASCADE;
-
-ALTER TABLE TournoiJuge ADD CONSTRAINT FK_TournoiJuge_idTournoi
-	FOREIGN KEY (idTournoi)
-	REFERENCES Tournoi (id)
-	ON DELETE CASCADE
-	ON UPDATE CASCADE;
-
-ALTER TABLE TournoiMembreOrganisateur ADD CONSTRAINT FK_TournoiJuge_idOtg
-	FOREIGN KEY (idOrg)
-	REFERENCES Membre (idPersonne)
-	ON DELETE NO ACTION
-	ON UPDATE CASCADE;
-
-ALTER TABLE TournoiMembreOrganisateur ADD CONSTRAINT FK_TournoiJuge_idTournoi
-	FOREIGN KEY (idTournoi)
-	REFERENCES Tournoi (id)
-	ON DELETE CASCADE
-	ON UPDATE CASCADE;
-
-ALTER TABLE TournoiMembreParticipant ADD CONSTRAINT FK_TournoiJuge_idMembre
-	FOREIGN KEY (idMembre)
-	REFERENCES Membre (idPersonne)
-	ON DELETE NO ACTION
-	ON UPDATE CASCADE;
-
-ALTER TABLE TournoiMembreParticipant ADD CONSTRAINT FK_TournoiJuge_idTournoi
-	FOREIGN KEY (idTournoi)
-	REFERENCES Tournoi (id)
-	ON DELETE CASCADE
-	ON UPDATE CASCADE;
 
 /* ------------------------------------------------------------------ */
 /* FUNCTIONS                                                          */
@@ -437,7 +336,7 @@ BEGIN
 		ORDER BY score DESC;
 
 END;
-$BODY$
+$BODY$;
 
 /* ------------------------------------------------------------------ */
 /* TRIGGERS                                                           */
@@ -480,7 +379,7 @@ BEGIN
 				ON Duel.idTournoi = TournoiMembreParticipant.idTournoi
 				AND (Duel.idJoueurUn = TournoiMembreParticipant.idMembre
 					OR Duel.idJoueurDeux = TournoiMembreParticipant.idMembre)
-		) <> 1
+		) < 1
 	THEN
 		RAISE EXCEPTION 'Un des joueuers n''est pas inscrit au tournoi';
 	END IF;
@@ -488,8 +387,8 @@ BEGIN
 		FROM Duel
 			INNER JOIN TournoiJuge
 				ON Duel.idTournoi = TournoiJuge.idTournoi
-				AND Duel.idJuge = TournoiJuge.idMembre
-		) <> 1
+				AND Duel.idJuge = TournoiJuge.idJuge
+		) < 1
 	THEN
 		RAISE EXCEPTION 'Ce juge doit être inscrit au tournoi pour juger ce Duel';
 	END IF;
@@ -600,7 +499,7 @@ BEGIN
 		FROM TournoiJuge
 			INNER JOIN TournoiMembreParticipant
 				ON TournoiMembreParticipant.idTournoi = NEW.idTournoi
-				AND TournoiMembreParticipant.idJuge = NEW.idJuge
+				AND TournoiMembreParticipant.idMembre = NEW.idJuge
 		) > 0
 	THEN
 		RAISE EXCEPTION 'On ne peut pas juge d''un tournoi auquel on participe';
@@ -644,3 +543,107 @@ $BODY$;
 CREATE OR REPLACE TRIGGER on_new_or_change_TournoiMembreOrganisateur
 AFTER INSERT OR UPDATE ON TournoiMembreOrganisateur
 FOR EACH ROW EXECUTE FUNCTION check_valid_TournoiMembreOrganisateur();
+
+/* ------------------------------------------------------------------ */
+/* CONSTRAINTS                                                        */
+/* ------------------------------------------------------------------ */
+
+ALTER TABLE Juge ADD CONSTRAINT idPersonne
+     FOREIGN KEY (idPersonne)
+     REFERENCES Personne (id)
+	 ON DELETE CASCADE
+     ON UPDATE CASCADE;
+
+ALTER TABLE Membre ADD CONSTRAINT FK_Membre_idPersonne
+     FOREIGN KEY (idPersonne)
+     REFERENCES Personne (id)
+     ON DELETE CASCADE
+     ON UPDATE CASCADE;
+
+ALTER TABLE Personne ADD CONSTRAINT FK_Personne_idAdresse
+	FOREIGN KEY (idAdresse)
+	REFERENCES Adresse (id)
+	ON DELETE SET NULL
+	ON UPDATE CASCADE;
+
+ALTER TABLE Tournoi ADD CONSTRAINT FK_Tournoi_idAdresse
+	FOREIGN KEY (idAdresse)
+	REFERENCES Adresse (id)
+	ON DELETE SET NULL
+	ON UPDATE CASCADE;
+	
+ALTER TABLE Tournoi ADD CONSTRAINT CK_Tournoi_dateHeureDebut_dateHeureFin 
+	CHECK (dateHeureFin > dateHeureDebut AND (dateHeureFin - dateHeureDebut) > (INTERVAL '80m' * nb_rounds(echelleNbJoueur) + INTERVAL '60m'));
+
+ALTER TABLE Manche ADD CONSTRAINT FK_Manche_idTournoi
+	FOREIGN KEY (idTournoi)
+	REFERENCES Tournoi (id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idManche
+	FOREIGN KEY (idManche, idTournoi)
+	REFERENCES Manche (id, idTournoi)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idJoueurUn
+	FOREIGN KEY (idJoueurUn)
+	REFERENCES Membre (idPersonne)
+	ON DELETE NO ACTION
+	ON UPDATE CASCADE;
+
+ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idJoueurDeux
+	FOREIGN KEY (idJoueurDeux)
+	REFERENCES Membre (idPersonne)
+	ON DELETE NO ACTION
+	ON UPDATE CASCADE;
+
+ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idGagnant
+	FOREIGN KEY (idGagnant)
+	REFERENCES Membre (idPersonne)
+	ON DELETE NO ACTION
+	ON UPDATE CASCADE;
+
+ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idJuge
+	FOREIGN KEY (idJuge)
+	REFERENCES Juge (idPersonne)
+	ON DELETE NO ACTION
+	ON UPDATE CASCADE;
+
+ALTER TABLE TournoiJuge ADD CONSTRAINT FK_TournoiJuge_idJuge
+	FOREIGN KEY (idJuge)
+	REFERENCES Juge (idPersonne)
+	ON DELETE NO ACTION
+	ON UPDATE CASCADE;
+
+ALTER TABLE TournoiJuge ADD CONSTRAINT FK_TournoiJuge_idTournoi
+	FOREIGN KEY (idTournoi)
+	REFERENCES Tournoi (id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+ALTER TABLE TournoiMembreOrganisateur ADD CONSTRAINT FK_TournoiJuge_idOtg
+	FOREIGN KEY (idOrg)
+	REFERENCES Membre (idPersonne)
+	ON DELETE NO ACTION
+	ON UPDATE CASCADE;
+
+ALTER TABLE TournoiMembreOrganisateur ADD CONSTRAINT FK_TournoiJuge_idTournoi
+	FOREIGN KEY (idTournoi)
+	REFERENCES Tournoi (id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
+ALTER TABLE TournoiMembreParticipant ADD CONSTRAINT FK_TournoiJuge_idMembre
+	FOREIGN KEY (idMembre)
+	REFERENCES Membre (idPersonne)
+	ON DELETE NO ACTION
+	ON UPDATE CASCADE;
+
+ALTER TABLE TournoiMembreParticipant ADD CONSTRAINT FK_TournoiJuge_idTournoi
+	FOREIGN KEY (idTournoi)
+	REFERENCES Tournoi (id)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE;
+
