@@ -9,7 +9,6 @@ $page->addValueToPage("<h1>Formats de tournois les plus populaires</h1>");
 $page->addLinkToPage("Retour aux métriques", "metrics.php", "../");
 
 $pageContent = getTournamentsFormatPopularity();
-
 foreach ($pageContent as $row) {
     $page->addValueToPage($row["format"] . " : " . $row["occurence"] );
 }
@@ -28,6 +27,7 @@ function getTournamentsFormatPopularity() {
         SELECT format, COUNT(id) as occurence
         FROM tournoi
         GROUP BY format
+        ORDER BY occurence DESC
         ');
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             $dataList[] = [
