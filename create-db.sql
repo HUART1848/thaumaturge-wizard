@@ -433,7 +433,7 @@ BEGIN
 				ON Duel.idTournoi = TournoiMembreParticipant.idTournoi
 				AND (Duel.idJoueurUn = TournoiMembreParticipant.idMembre
 					OR Duel.idJoueurDeux = TournoiMembreParticipant.idMembre)
-		) <> 1
+		) < 1
 	THEN
 		RAISE EXCEPTION 'Un des joueuers n''est pas inscrit au tournoi';
 	END IF;
@@ -441,8 +441,8 @@ BEGIN
 		FROM Duel
 			INNER JOIN TournoiJuge
 				ON Duel.idTournoi = TournoiJuge.idTournoi
-				AND Duel.idJuge = TournoiJuge.idMembre
-		) <> 1
+				AND Duel.idJuge = TournoiJuge.idJuge
+		) < 1
 	THEN
 		RAISE EXCEPTION 'Ce juge doit être inscrit au tournoi pour juger ce Duel';
 	END IF;
@@ -553,7 +553,7 @@ BEGIN
 		FROM TournoiJuge
 			INNER JOIN TournoiMembreParticipant
 				ON TournoiMembreParticipant.idTournoi = NEW.idTournoi
-				AND TournoiMembreParticipant.idJuge = NEW.idJuge
+				AND TournoiMembreParticipant.idMembre = NEW.idJuge
 		) > 0
 	THEN
 		RAISE EXCEPTION 'On ne peut pas juge d''un tournoi auquel on participe';
