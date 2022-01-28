@@ -117,10 +117,7 @@ cities = ["Yverdon-les-Bains", "Yverdon-les-Bains", "Lausanne", "Bienne", "Fribo
 
 tournaments = [8, 8, 16, 8, 32, 8, 32, 16, 8, 8]
 
-n_judges = 10 * 3;
-n_players = 8 + 8 + 16 + 8 + 32 + 8 + 32 + 16 + 8 + 8
-
-def genTournament(tid, juge, players):
+def genTournament(tid, manche_cnt, juge, players):
     p = players.copy()
     while len(p) > 1:
         print(f"CALL registerManche({tid}::SMALLINT, '2020-01-01 12:00', '10 minutes');")
@@ -137,7 +134,7 @@ def genTournament(tid, juge, players):
             p2firstname = p2["firstname"]
             p2id = p2["id"]
 
-            print(f"registerDuel")
+            print(f"CALL registerDuel({manche_cnt}::SMALLINT, )")
             j += 2
         p = p[0:len(p):2]
 
@@ -159,20 +156,28 @@ def printJudge(j):
     print(f"CALL createJudgeFromPersonne({id}::SMALLINT, {random.choice([1,2,3])}::INT);")
 
 
-cnt = 1
+cnt_player = 1
+cnt_manche = 1
 players = []
+
+print("/*Création des joueurs*/")
 for i in range(64):
-    players.append(genPlayer(cnt))
-    cnt += 1
+    new_player = genPlayer(cnt_player)
+    printCreatePersonne(new_player)
 
-for i in range(len(tournaments)):
-    print(f"/*Tournoi #{i+1}*/")
+    players.append(new_player)
+    cnt_player += 1
 
-    print("/*Juge*/")
-    juge = genPlayer(cnt);
+print("\n/*Peuplage des tournois */\n")
+for tid in range(1, len(tournaments) + 1):
+    print(f"/*Tournoi #{tid}*/")
+
+    print("\n/*Création du juge*/")
+    juge = genPlayer(cnt_player);
     printJudge(juge)
-    cnt += 1
+    cnt_player += 1
 
-    cur_players = random.sample(players, tournaments[i]+1)
-    genTournament(i+1, juge, cur_players)
+    print("\n/*Création des manches et duels*/")
+    cur_players = random.sample(players, tournaments[tid-1])
+    genTournament(tid, cnt_manche, juge, cur_players)
     print()
