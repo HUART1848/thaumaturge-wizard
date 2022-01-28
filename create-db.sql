@@ -392,6 +392,35 @@ CREATE OR REPLACE FUNCTION tournoi_annule(idTournoi integer)
 	END;
 	$BODY$;
 
+CREATE OR REPLACE FUNCTION classement_tournoi(pId integer)
+RETURNS TABLE (nom TEXT, prenom TEXT, numeroMembre SMALLINT, score INTEGER)
+LANGUAGE plpgsql
+AS
+$BODY$
+DECLARE
+BEGIN
+	RETURN QUERY
+		SELECT
+		Personne.nom,
+		Personne.prenom,
+		Membre.numeroMembre,
+		SUM(CASE WHEN Duel.idGagnant = Membre.idPersonne THEN 2
+				 WHEN Duel.idGagnant IS NULL THEN 0
+				 ELSE -2
+				 END) AS score
+		FROM Membre
+		INNER JOIN Personne
+			ON Personne.id = Membre.idPersonne
+		INNER JOIN Duel
+			ON Duel.idJoueurUn = Membre.idPersonne
+				OR Duel.idJoueurDeux = Membre.idPersonne
+		WHERE Duel.idTournoi = pId
+		GROUP BY (Personne.nom, Personne.prenom, Membre.numeroMembre)
+		ORDER BY score DESC;
+
+END;
+$BODY$
+
 /* ------------------------------------------------------------------ */
 /* TRIGGERS                                                           */
 /* ------------------------------------------------------------------ */
@@ -597,4 +626,3 @@ $BODY$;
 CREATE OR REPLACE TRIGGER on_new_or_change_TournoiMembreOrganisateur
 AFTER INSERT OR UPDATE ON TournoiMembreOrganisateur
 FOR EACH ROW EXECUTE FUNCTION check_valid_TournoiMembreOrganisateur();
-
