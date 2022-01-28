@@ -410,9 +410,9 @@ BEGIN
 END;
 $BODY$;
 
-CREATE TRIGGER on_new_or_change_TournoiMemebreJoueur
-AFTER INSERT OR UPDATE ON TournoiMemebreJoueur
-FOR EACH ROW EXECUTE FUNCTION check_valid_TournoiMemebreJoueur();
+CREATE TRIGGER on_new_or_change_TournoiMembreParticipant
+AFTER INSERT OR UPDATE ON TournoiMembreParticipant
+FOR EACH ROW EXECUTE FUNCTION check_valid_TournoiMembreParticipant();
 
 /* juge */
 CREATE OR REPLACE FUNCTION check_valid_TournoiJuge()
