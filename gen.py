@@ -1,6 +1,5 @@
 from cgitb import small
 import datetime, names, random
-from tracemalloc import start
 
 decks = {"Burkina" : 
 """3 Faceless Haven
@@ -168,3 +167,7 @@ for tid in range(1, len(tournaments) + 1):
     cur_players = random.sample(players, tournaments[tid-1])
     cnt_player, cnt_manche = genTournament(tid, cnt_manche, tournaments_dates[tid-1], cnt_player, cur_players)
     print()
+
+print("/*Ajout du membre de service*/")
+albert = {"id" : cnt_player, "firstname" : "Albert", "lastname" : "Le Vert", "ville" : "Lausanne"}
+printCreateMembre(albert)
