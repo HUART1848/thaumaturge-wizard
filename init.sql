@@ -108,9 +108,9 @@ $BODY$;
 		
 /* 6*/ INSERT INTO tournoi (nom, dateheuredebut, dateheurefin, delaiadmin, format, echellenbjoueur, idadresse)
 	VALUES ('Tournoi de la guilde vaudoise',
-			'2022-03-30 12:00',
-			'2022-03-30 15:00',
-			'2022-04-20 00:00',
+			'2022-04-30 12:00',
+			'2022-04-30 15:00',
+			'2022-05-01 00:00',
 			'Modern', 8, 2);
 		
 /* 7*/ INSERT INTO tournoi (nom, dateheuredebut, dateheurefin, delaiadmin, format, echellenbjoueur, idadresse)

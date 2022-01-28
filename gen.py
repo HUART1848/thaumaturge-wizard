@@ -1,4 +1,5 @@
-import names, random
+import datetime, names, random
+from tracemalloc import start
 
 decks = {"Burkina" : 
 """3 Faceless Haven
@@ -62,8 +63,20 @@ cities = ["Yverdon-les-Bains", "Yverdon-les-Bains", "Lausanne", "Bienne", "Fribo
           "Kyiv", "Sion", "Sarcelles"];
 
 tournaments = [8, 8, 16, 8, 32, 8, 32, 16, 8, 8]
+tournaments_dates = [
+    datetime.datetime(2022, 9, 11, 6, 0),
+    datetime.datetime(2022, 1, 20, 12, 0),
+    datetime.datetime(2022, 6, 1, 10, 0),
+    datetime.datetime(2021, 12, 6, 10, 0),
+    datetime.datetime(2022, 3, 30, 12, 0),
+    datetime.datetime(2022, 4, 30, 12, 0),
+    datetime.datetime(2022, 2, 8, 8, 0),
+    datetime.datetime(2022, 4, 1, 10, 0),
+    datetime.datetime(2022, 2, 28, 6, 30),
+    datetime.datetime(2022, 7, 3, 10, 0),
+]
 
-def genTournament(tid, manche_cnt, juge, players):
+def genTournament(tid, manche_cnt, starttime, juge, players):
     p = players.copy()
     print("\n/*Assignation des decks*/")
     for player in p:
@@ -77,8 +90,11 @@ def genTournament(tid, manche_cnt, juge, players):
 
     jid = juge["id"]
     print("\n/*Création des manches et duels*/")
+    curtime = starttime
     while len(p) > 1:
-        print(f"CALL registerManche({tid}::SMALLINT, '2020-01-01 12:00', '10 minutes');")
+        timestr = curtime.strftime("%Y-%m-%d %H:%M")
+        print(f"CALL registerManche({tid}::SMALLINT, '{timestr}', '10 minutes');")
+        curtime += datetime.timedelta(minutes=10)
         j = 1
         while j < len(p):
             p1 = p[j-1]
@@ -89,6 +105,7 @@ def genTournament(tid, manche_cnt, juge, players):
 
             print(f"CALL registerDuel({manche_cnt}::SMALLINT, {tid}::SMALLINT, {jid}::SMALLINT, {p1id}::SMALLINT, {p2id}::SMALLINT, {p1id}::SMALLINT);")
             j += 2
+        manche_cnt += 1
         p = p[0:len(p):2]
 
 def genPlayer(cnt):
@@ -125,11 +142,11 @@ print("\n/*Peuplage des tournois */\n")
 for tid in range(1, len(tournaments) + 1):
     print(f"/*Tournoi #{tid}*/")
 
-    print("\n/*Création du juge*/")
+    print("/*Création du juge*/")
     juge = genPlayer(cnt_player);
     printJudge(juge)
     cnt_player += 1
 
     cur_players = random.sample(players, tournaments[tid-1])
-    genTournament(tid, cnt_manche, juge, cur_players)
+    genTournament(tid, cnt_manche, tournaments_dates[tid-1], juge, cur_players)
     print()
