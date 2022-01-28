@@ -1,8 +1,8 @@
 
 
-/* ------------------------------------------------------------------ */ 
+/* ------------------------------------------------------------------ */
 /* DECLARATION                                                        */
-/* ------------------------------------------------------------------ */ 
+/* ------------------------------------------------------------------ */
 
 DROP TABLE IF EXISTS Adresse CASCADE;
 CREATE TABLE Adresse (
@@ -64,7 +64,7 @@ CREATE TABLE Tournoi (
 	id SMALLSERIAL,
 	nom TEXT NOT NULL,
 	dateHeureDebut TIMESTAMP NOT NULL,
-	dateHeureFin TIMESTAMP NOT NULL, 
+	dateHeureFin TIMESTAMP NOT NULL,
 	delaiAdmin TIME NOT NULL,
 	format TEXT NOT NULL,
 	echelleNbJoueur SMALLINT NOT NULL , /* peut aussi être considerer come le nombre max de joueur */
@@ -97,9 +97,9 @@ CREATE TABLE TournoiJuge (
 	PRIMARY KEY (idJuge, idTournoi)
 );
 
-/* ------------------------------------------------------------------ */ 
+/* ------------------------------------------------------------------ */
 /* CONSTRAINTS                                                        */
-/* ------------------------------------------------------------------ */ 
+/* ------------------------------------------------------------------ */
 
 ALTER TABLE Juge ADD CONSTRAINT idPersonne
      FOREIGN KEY (idPersonne)
@@ -116,88 +116,88 @@ ALTER TABLE Membre ADD CONSTRAINT FK_Membre_idPersonne
 ALTER TABLE Personne ADD CONSTRAINT FK_Personne_idAdresse
 	FOREIGN KEY (idAdresse)
 	REFERENCES Adresse (id)
-	ON DELETE SET NULL 
+	ON DELETE SET NULL
 	ON UPDATE CASCADE;
-	
+
 ALTER TABLE Tournoi ADD CONSTRAINT FK_Tournoi_idAdresse
 	FOREIGN KEY (idAdresse)
 	REFERENCES Adresse (id)
-	ON DELETE SET NULL 
+	ON DELETE SET NULL
 	ON UPDATE CASCADE;
-	
+
 ALTER TABLE Manche ADD CONSTRAINT FK_Manche_idTournoi
 	FOREIGN KEY (idTournoi)
 	REFERENCES Tournoi (id)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
-	
+
 ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idManche
 	FOREIGN KEY (idManche, idTournoi)
 	REFERENCES Manche (id, idTournoi)
 	ON DELETE CASCADE
 	ON UPDATE CASCADE;
-	
+
 ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idJoueurUn
 	FOREIGN KEY (idJoueurUn)
 	REFERENCES Membre (idPersonne)
-	ON DELETE NO ACTION 
+	ON DELETE NO ACTION
 	ON UPDATE CASCADE;
-	
+
 ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idJoueurDeux
 	FOREIGN KEY (idJoueurDeux)
 	REFERENCES Membre (idPersonne)
-	ON DELETE NO ACTION 
+	ON DELETE NO ACTION
 	ON UPDATE CASCADE;
-	
+
 ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idGagnant
 	FOREIGN KEY (idGagnant)
 	REFERENCES Membre (idPersonne)
-	ON DELETE NO ACTION 
+	ON DELETE NO ACTION
 	ON UPDATE CASCADE;
 
 ALTER TABLE Duel ADD CONSTRAINT FK_Duel_idJuge
 	FOREIGN KEY (idJuge)
 	REFERENCES Juge (idPersonne)
-	ON DELETE NO ACTION 
+	ON DELETE NO ACTION
 	ON UPDATE CASCADE;
 
 ALTER TABLE TournoiJuge ADD CONSTRAINT FK_TournoiJuge_idJuge
 	FOREIGN KEY (idJuge)
 	REFERENCES Juge (idPersonne)
-	ON DELETE NO ACTION 
+	ON DELETE NO ACTION
 	ON UPDATE CASCADE;
 
 ALTER TABLE TournoiJuge ADD CONSTRAINT FK_TournoiJuge_idTournoi
 	FOREIGN KEY (idTournoi)
 	REFERENCES Tournoi (id)
-	ON DELETE CASCADE 
+	ON DELETE CASCADE
 	ON UPDATE CASCADE;
 
 ALTER TABLE TournoiMembreOrganisateur ADD CONSTRAINT FK_TournoiJuge_idOtg
 	FOREIGN KEY (idOrg)
 	REFERENCES Membre (idPersonne)
-	ON DELETE NO ACTION 
+	ON DELETE NO ACTION
 	ON UPDATE CASCADE;
 
 ALTER TABLE TournoiMembreOrganisateur ADD CONSTRAINT FK_TournoiJuge_idTournoi
 	FOREIGN KEY (idTournoi)
 	REFERENCES Tournoi (id)
-	ON DELETE CASCADE 
+	ON DELETE CASCADE
 	ON UPDATE CASCADE;
 
 ALTER TABLE TournoiMembreParticipant ADD CONSTRAINT FK_TournoiJuge_idMembre
 	FOREIGN KEY (idMembre)
 	REFERENCES Membre (idPersonne)
-	ON DELETE NO ACTION 
+	ON DELETE NO ACTION
 	ON UPDATE CASCADE;
 
 ALTER TABLE TournoiMembreParticipant ADD CONSTRAINT FK_TournoiJuge_idTournoi
 	FOREIGN KEY (idTournoi)
 	REFERENCES Tournoi (id)
-	ON DELETE CASCADE 
+	ON DELETE CASCADE
 	ON UPDATE CASCADE;
 
-/* ------------------------------------------------------------------ */ 
+/* ------------------------------------------------------------------ */
 /* FUNCTIONS                                                          */
 /* ------------------------------------------------------------------ */
 
@@ -206,10 +206,10 @@ CREATE OR REPLACE FUNCTION niveau_min_de_Juge_total(echelle integer)
 	LANGUAGE plpgsql
 	AS
 	$BODY$
-	DECLARE 
+	DECLARE
 		rounds integer;
 	BEGIN
-		
+
 		IF echelle = 8
 			THEN RETURN 1;
 			ELSEIF echelle = 16
@@ -220,7 +220,7 @@ CREATE OR REPLACE FUNCTION niveau_min_de_Juge_total(echelle integer)
 			THEN RETURN 8;
 			ELSE RETURN -1;
 		END IF;
-	
+
 	END;
 	$BODY$;
 
@@ -230,10 +230,10 @@ CREATE OR REPLACE FUNCTION nb_Rounds(echelle integer)
 	LANGUAGE plpgsql
 	AS
 	$BODY$
-	DECLARE 
+	DECLARE
 		rounds integer;
 	BEGIN
-		
+
 		IF echelle = 8
 			THEN RETURN 3;
 			ELSEIF echelle = 16
@@ -244,7 +244,7 @@ CREATE OR REPLACE FUNCTION nb_Rounds(echelle integer)
 			THEN RETURN 6;
 			ELSE RETURN -1;
 		END IF;
-	
+
 	END;
 	$BODY$;
 
@@ -254,10 +254,10 @@ CREATE OR REPLACE FUNCTION nb_Joueur_min(echelle integer)
 	LANGUAGE plpgsql
 	AS
 	$BODY$
-	DECLARE 
+	DECLARE
 		joueurs_min integer;
 	BEGIN
-		
+
 		IF echelle = 8
 			THEN RETURN 4;
 		ELSEIF echelle = 16
@@ -268,7 +268,7 @@ CREATE OR REPLACE FUNCTION nb_Joueur_min(echelle integer)
 			THEN RETURN 33;
 		ELSE RETURN -1;
 		END IF;
-	
+
 	END;
 	$BODY$;
 
@@ -277,26 +277,26 @@ CREATE OR REPLACE FUNCTION Juge_level(id integer)
 	LANGUAGE plpgsql
 	AS
 	$BODY$
-	DECLARE 
+	DECLARE
 		juge_level integer;
 		juge_exp integer;
 	BEGIN
-		
+
 		SELECT Juge.experience INTO juge_exp
 		FROM Juge
 		WHERE Juge.idPersonne = id;
-	
+
 		IF juge_exp <= 3
 			THEN RETURN 0;
 		ELSEIF juge_exp <= 100
 			THEN RETURN 1;
 		ELSEIF juge_exp <= 300
 			THEN RETURN 2;
-		ELSEIF juge_exp >= 0 
+		ELSEIF juge_exp >= 0
 			THEN RETURN 3;
 		ELSE RETURN NULL;
 		END IF;
-	
+
 	END;
 	$BODY$;
 
@@ -305,13 +305,13 @@ CREATE OR REPLACE FUNCTION Juge_max_simultane(id integer)
 	LANGUAGE plpgsql
 	AS
 	$BODY$
-	DECLARE 
+	DECLARE
 		max_juged_games integer;
 	BEGIN
-		
+
 		SELECT juge_level(id)*4 INTO max_juged_games;
 		RETURN max_juged_games;
-	
+
 	END;
 	$BODY$;
 
@@ -320,16 +320,16 @@ CREATE OR REPLACE FUNCTION nb_inscrits_tournoi(id integer)
 	LANGUAGE plpgsql
 	AS
 	$BODY$
-	DECLARE 
+	DECLARE
 		nombre_inscrits integer;
 	BEGIN
-		
+
 		SELECT COUNT(*)
 		FROM TournoiMembreParticipant
 		WHERE idTournoi = id
 		INTO nombre_inscrits;
 		RETURN nombre_inscrits;
-	
+
 	END;
 	$BODY$;
 
@@ -338,17 +338,17 @@ CREATE OR REPLACE FUNCTION niveau_juges_tournoi(id integer)
 	LANGUAGE plpgsql
 	AS
 	$BODY$
-	DECLARE 
+	DECLARE
 		niveau_juges integer;
 	BEGIN
-		
+
 		SELECT SUM(juge_level(Juge.idPersonne)) INTO niveau_juges
 		FROM Juge
 			INNER JOIN TournoiJuge
 				ON TournoiJuge.idJuge = Juge.idPersonne
 		WHERE idTournoi = id;
 		RETURN niveau_juges;
-	
+
 	END;
 	$BODY$;
 
@@ -360,12 +360,12 @@ CREATE OR REPLACE FUNCTION tournoi_commence(idTournoi integer)
 	DECLARE
 		date_debut timestamp;
 	BEGIN
-		
+
 		SELECT dateHeureDebut INTO date_debut
 		FROM Tournoi
 		WHERE idTournoi = id;
 		RETURN date_debut < NOW();
-	
+
 	END;
 	$BODY$;
 
@@ -374,42 +374,42 @@ CREATE OR REPLACE FUNCTION tournoi_annule(idTournoi integer)
 	LANGUAGE plpgsql
 	AS
 	$BODY$
-	DECLARE 
+	DECLARE
 		tournoi_annule boolean;
 		echelle_tournoi integer;
 		nb_inscrits integer;
 	BEGIN
-		
+
 		SELECT echelleNbJoueur INTO echelle_tournoi
 			FROM Tournoi
 			WHERE id = idTournoi;
 		SELECT nb_inscrits_tournoi(idTournoi) INTO nb_inscrits;
-		SELECT nb_inscrits < nb_joueur_min(echelle_tournoi) 
-			OR niveau_juges_tournoi(idTournoi) < niveau_min_de_juge_total(echelle_tournoi) 
+		SELECT nb_inscrits < nb_joueur_min(echelle_tournoi)
+			OR niveau_juges_tournoi(idTournoi) < niveau_min_de_juge_total(echelle_tournoi)
 			INTO tournoi_annule;
 		RETURN tournoi_annule AND tournoi_commence(idTournoi);
-	
+
 	END;
 	$BODY$;
 
-/* ------------------------------------------------------------------ */ 
+/* ------------------------------------------------------------------ */
 /* TRIGGERS                                                           */
 /* ------------------------------------------------------------------ */
 
 /* MANCHE TRIGGER */
 CREATE OR REPLACE FUNCTION check_valid_Manche()
-	RETURNS TRIGGER 
+	RETURNS TRIGGER
 	LANGUAGE plpgsql
 AS
 $BODY$
-BEGIN 
+BEGIN
 	IF (SELECT COUNT(*)
 		FROM Manche
-			WHERE NEW.idTournoi = idTournoi 
-				AND NEW.id <> id 
+			WHERE NEW.idTournoi = idTournoi
+				AND NEW.id <> id
 				AND NEW.dateHeureDebut BETWEEN dateheuredebut AND dateHeureDebut + duree
 		) > 0
-	THEN 
+	THEN
 		RAISE EXCEPTION 'Une manche ne peut commancer durant une autre manche';
 	END IF;
 	RETURN NULL;
@@ -422,47 +422,47 @@ FOR EACH ROW EXECUTE FUNCTION check_valid_Manche();
 
 /* DUEL TRIGGER */
 CREATE OR REPLACE FUNCTION check_valid_Duel()
-	RETURNS TRIGGER 
+	RETURNS TRIGGER
 	LANGUAGE plpgsql
 AS
 $BODY$
-BEGIN 
+BEGIN
 	IF (SELECT COUNT(*)
 		FROM Duel
 			INNER JOIN TournoiMembreParticipant
-				ON duel.idtournoi = TournoiMembreParticipant.idtournoi 
-				AND (duel.idjoueurun = TournoiMembreParticipant.idmembre
-					OR duel.idjoueurdeux = TournoiMembreParticipant.idmembre)
+				ON Duel.idTournoi = TournoiMembreParticipant.idTournoi
+				AND (Duel.idJoueurUn = TournoiMembreParticipant.idMembre
+					OR Duel.idJoueurDeux = TournoiMembreParticipant.idMembre)
 		) <> 1
-	THEN 
+	THEN
 		RAISE EXCEPTION 'Un des joueuers n''est pas inscrit au tournoi';
 	END IF;
 	IF (SELECT COUNT(*)
 		FROM Duel
 			INNER JOIN TournoiJuge
-				ON duel.idtournoi = TournoiJuge.idtournoi 
-				AND duel.idjuge = TournoiJuge.idmembre
+				ON Duel.idTournoi = TournoiJuge.idTournoi
+				AND Duel.idJuge = TournoiJuge.idMembre
 		) <> 1
-	THEN 
-		RAISE EXCEPTION 'Ce juge doit être inscrit au tournoi pour juger ce duel';
+	THEN
+		RAISE EXCEPTION 'Ce juge doit être inscrit au tournoi pour juger ce Duel';
 	END IF;
 	IF (SELECT COUNT(*)
-		FROM Duel 
-		WHERE NEW.idjuge = idjuge
+		FROM Duel
+		WHERE NEW.idJuge = idJuge
 			AND NEW.idManche = idManche
 			AND NEW.idTournoi = idTournoi
 		) > juge_max_simultane(NEW.idJuge)
-	THEN 
-		RAISE EXCEPTION 'Ce juge ne peut pas juger plus de duel durant ce round';
+	THEN
+		RAISE EXCEPTION 'Ce juge ne peut pas juger plus de Duel durant ce round';
 	END IF;
 	IF (SELECT COUNT(*)
-		FROM Duel 
+		FROM Duel
 		WHERE (NEW.idJoueurUn = idJoueurUn OR NEW.idJoueurDeux = idJoueurDeux)
 			AND NEW.idManche = idManche
 			AND NEW.idTournoi = idTournoi
 		) > 1
-	THEN 
-		RAISE EXCEPTION 'Un joueur ne peut pas participer à plus d''un duel à la fois';
+	THEN
+		RAISE EXCEPTION 'Un joueur ne peut pas participer à plus d''un Duel à la fois';
 	END IF;
 	RETURN NULL;
 END;
@@ -480,7 +480,7 @@ CREATE OR REPLACE FUNCTION get_nb_concurent_tournament(idPersonne integer, idTou
 	LANGUAGE plpgsql
 AS
 $BODY$
-DECLARE 
+DECLARE
 	to_return integer;
 	startDate TIMESTAMP;
 	endDate TIMESTAMP;
@@ -488,21 +488,21 @@ BEGIN
 	SELECT Tournoi.dateHeureDebut INTO startDate
 	FROM Tournoi
 	WHERE Tournoi.id = idTournoiC;
-	
+
 	SELECT Tournoi.dateHeureFin INTO endDate
 	FROM Tournoi
 	WHERE Tournoi.id = idTournoiC;
-	
+
 	SELECT COUNT(*) INTO to_return
-	FROM Tournoi 
+	FROM Tournoi
 		INNER JOIN TournoiMembreParticipant
-			ON Tournoi.id = TournoiMembreParticipant.idTournoi 
+			ON Tournoi.id = TournoiMembreParticipant.idTournoi
 			AND TournoiMembreParticipant.idMembre = idPersonne
 		INNER JOIN TournoiMembreOrganisateur
-			ON Tournoi.id = TournoiMembreOrganisateur.idTournoi 
+			ON Tournoi.id = TournoiMembreOrganisateur.idTournoi
 			AND TournoiMembreOrganisateur.idOrg = idPersonne
 		INNER JOIN TournoiJuge
-			ON Tournoi.id = TournoiJuge.idTournoi 
+			ON Tournoi.id = TournoiJuge.idTournoi
 			AND TournoiJuge.idJuge = idPersonne
 	WHERE Tournoi.dateHeureDebut BETWEEN startDate AND endDate OR Tournoi.dateHeureFin BETWEEN startDate AND endDate;
 
@@ -512,26 +512,26 @@ $BODY$;
 
 /* joueur */
 CREATE OR REPLACE FUNCTION check_valid_TournoiMembreParticipant()
-	RETURNS TRIGGER 
+	RETURNS TRIGGER
 	LANGUAGE plpgsql
 AS
 $BODY$
-BEGIN 
+BEGIN
 	IF (SELECT COUNT(*)
 		FROM TournoiMembreParticipant
 			LEFT JOIN TournoiJuge
-				ON NEW.idTournoi = TournoiJuge.idTournoi 
+				ON NEW.idTournoi = TournoiJuge.idTournoi
 				AND NEW.idMembre = TournoiJuge.idJuge
-			LEFT JOIN TournoiMembreOrganisateur 
-				ON NEW.idTournoi = TournoiMembreOrganisateur.idTournoi 
-				AND NEW.idMembre = TournoiMembreOrganisateur.idOrg 
+			LEFT JOIN TournoiMembreOrganisateur
+				ON NEW.idTournoi = TournoiMembreOrganisateur.idTournoi
+				AND NEW.idMembre = TournoiMembreOrganisateur.idOrg
 		WHERE TournoiJuge.idJuge IS NOT NULL OR TournoiMembreOrganisateur.idOrg IS NOT NULL
 		) > 0
-	THEN 
+	THEN
 		RAISE EXCEPTION 'On ne peut pas participer à un tournoi qu''on organise et/ou juge';
 	END IF;
 	IF get_nb_concurent_tournament(NEW.idMembre, NEW.idTournoi) > 1
-	THEN 
+	THEN
 		RAISE EXCEPTION 'On ne peut pas participer à plusieur tournoi qui se passent en même temps';
 	END IF;
 	RETURN NULL;
@@ -544,22 +544,22 @@ FOR EACH ROW EXECUTE FUNCTION check_valid_TournoiMembreParticipant();
 
 /* juge */
 CREATE OR REPLACE FUNCTION check_valid_TournoiJuge()
-	RETURNS TRIGGER 
+	RETURNS TRIGGER
 	LANGUAGE plpgsql
 AS
 $BODY$
-BEGIN 
+BEGIN
 	IF (SELECT COUNT(*)
 		FROM TournoiJuge
 			INNER JOIN TournoiMembreParticipant
-				ON TournoiMembreParticipant.idTournoi = NEW.idTournoi 
+				ON TournoiMembreParticipant.idTournoi = NEW.idTournoi
 				AND TournoiMembreParticipant.idJuge = NEW.idJuge
 		) > 0
-	THEN 
+	THEN
 		RAISE EXCEPTION 'On ne peut pas juge d''un tournoi auquel on participe';
 	END IF;
 	IF get_nb_concurent_tournament(NEW.idMembre, NEW.idTournoi) > 1
-	THEN 
+	THEN
 		RAISE EXCEPTION 'On ne peut pas participer à plusieur tournoi qui se passent en même temps';
 	END IF;
 	RETURN NULL;
@@ -572,22 +572,22 @@ FOR EACH ROW EXECUTE FUNCTION check_valid_TournoiJuge();
 
 /* organisateur */
 CREATE OR REPLACE FUNCTION check_valid_TournoiMembreOrganisateur()
-	RETURNS TRIGGER 
+	RETURNS TRIGGER
 	LANGUAGE plpgsql
 AS
 $BODY$
-BEGIN 
+BEGIN
 	IF (SELECT COUNT(*)
 		FROM TournoiMembreOrganisateur
-			INNER JOIN TournoiMembreParticipant 
-				ON TournoiMembreParticipant.idTournoi = NEW.idTournoi 
-				AND TournoiMembreParticipant.idMembre = NEW.idOrg 
+			INNER JOIN TournoiMembreParticipant
+				ON TournoiMembreParticipant.idTournoi = NEW.idTournoi
+				AND TournoiMembreParticipant.idMembre = NEW.idOrg
 		) > 0
-	THEN 
+	THEN
 		RAISE EXCEPTION 'On ne peut pas être organisateur d''un tournoi auquel on participe';
 	END IF;
 	IF get_nb_concurent_tournament(NEW.idMembre, NEW.idTournoi) > 1
-	THEN 
+	THEN
 		RAISE EXCEPTION 'On ne peut pas participer à plusieur tournoi qui se passent en même temps';
 	END IF;
 	RETURN NULL;
