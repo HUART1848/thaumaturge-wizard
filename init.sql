@@ -41,6 +41,14 @@ BEGIN
 END
 $BODY$;
 
+CREATE OR REPLACE PROCEDURE assignJudgeAsOrganisateur(_idjuge SMALLINT, _idtournoi SMALLINT)
+LANGUAGE plpgsql
+AS $BODY$ 
+BEGIN 
+	INSERT INTO tournoimembreorganisateur(idorg, idtournoi) VALUES (_idjuge, idtournoi);
+END
+$BODY$;
+
 CREATE OR REPLACE PROCEDURE registerManche(_idtournoi SMALLINT, _debut TIMESTAMP, _duree INTERVAL)
 LANGUAGE plpgsql
 AS $BODY$ 
