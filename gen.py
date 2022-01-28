@@ -100,7 +100,7 @@ def genTournament(tid, manche_cnt, starttime, juge, players):
     curtime = starttime
     while len(p) > 1:
         timestr = curtime.strftime("%Y-%m-%d %H:%M")
-        print(f"CALL registerManche({tid}::SMALLINT, '{timestr}', '10 minutes');")
+        print(f"CALL registerManche({tid}::SMALLINT, '{timestr}', INTERVAL '10m');")
         curtime += datetime.timedelta(minutes=10)
         j = 1
         while j < len(p):

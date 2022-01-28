@@ -37,6 +37,7 @@ CREATE OR REPLACE PROCEDURE assignJudgeToTournoi(_idpersonne SMALLINT, _idtourno
 LANGUAGE plpgsql
 AS $BODY$ 
 BEGIN
+	INSERT INTO membre(idpersonne) VALUES (_idpersonne);
 	INSERT INTO tournoijuge(idjuge, idtournoi) VALUES (_idpersonne, _idtournoi);
 END
 $BODY$;
@@ -45,7 +46,7 @@ CREATE OR REPLACE PROCEDURE assignJudgeAsOrganisateur(_idjuge SMALLINT, _idtourn
 LANGUAGE plpgsql
 AS $BODY$ 
 BEGIN 
-	INSERT INTO tournoimembreorganisateur(idorg, idtournoi) VALUES (_idjuge, idtournoi);
+	INSERT INTO tournoimembreorganisateur(idorg, idtournoi) VALUES (_idjuge, _idtournoi);
 END
 $BODY$;
 
