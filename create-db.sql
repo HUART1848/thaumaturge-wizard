@@ -283,7 +283,7 @@ CREATE OR REPLACE FUNCTION Juge_level(id integer)
 	BEGIN
 		
 		SELECT Juge.experience INTO juge_exp
-		FROM Juge 
+		FROM Juge
 		WHERE Juge.idPersonne = id;
 	
 		IF juge_exp <= 3
