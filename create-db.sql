@@ -211,15 +211,16 @@ CREATE OR REPLACE FUNCTION niveau_min_de_juge_total(echelle integer)
 	BEGIN
 		
 		IF echelle = 8
-		THEN RETURN 1;
-		ELSEIF echelle = 16
-		THEN RETURN 2;
-		ELSEIF echelle = 32
-		THEN RETURN 4;
-		ELSEIF echelle = 64
-		THEN RETURN 8;
-		ELSE RETURN -1;
+			THEN RETURN 1;
+			ELSEIF echelle = 16
+			THEN RETURN 2;
+			ELSEIF echelle = 32
+			THEN RETURN 4;
+			ELSEIF echelle = 64
+			THEN RETURN 8;
+			ELSE RETURN -1;
 		END IF;
+	
 	END;
 	$BODY$;
 
@@ -234,15 +235,16 @@ CREATE OR REPLACE FUNCTION nb_rounds(echelle integer)
 	BEGIN
 		
 		IF echelle = 8
-		THEN RETURN 3;
-		ELSEIF echelle = 16
-		THEN RETURN 4;
-		ELSEIF echelle = 32
-		THEN RETURN 5;
-		ELSEIF echelle = 64
-		THEN RETURN 6;
-		ELSE RETURN -1;
+			THEN RETURN 3;
+			ELSEIF echelle = 16
+			THEN RETURN 4;
+			ELSEIF echelle = 32
+			THEN RETURN 5;
+			ELSEIF echelle = 64
+			THEN RETURN 6;
+			ELSE RETURN -1;
 		END IF;
+	
 	END;
 	$BODY$;
 
@@ -257,15 +259,16 @@ CREATE OR REPLACE FUNCTION nb_joueur_min(echelle integer)
 	BEGIN
 		
 		IF echelle = 8
-		THEN RETURN 4;
+			THEN RETURN 4;
 		ELSEIF echelle = 16
-		THEN RETURN 9;
+			THEN RETURN 9;
 		ELSEIF echelle = 32
-		THEN RETURN 17;
+			THEN RETURN 17;
 		ELSEIF echelle = 64
-		THEN RETURN 33;
+			THEN RETURN 33;
 		ELSE RETURN -1;
 		END IF;
+	
 	END;
 	$BODY$;
 
@@ -278,18 +281,20 @@ CREATE OR REPLACE FUNCTION juge_level(id integer)
 		juge_level integer;
 		juge_exp integer;
 	BEGIN
+		
 		SELECT Juge.experience INTO juge_exp
-		FROM juge 
+		FROM Juge 
 		WHERE Juge.idPersonne = id;
 	
 		IF juge_exp <= 3
-		THEN RETURN 0;
+			THEN RETURN 0;
 		ELSEIF juge_exp <= 100
-		THEN RETURN 1;
+			THEN RETURN 1;
 		ELSEIF juge_exp <= 300
-		THEN RETURN 2;
+			THEN RETURN 2;
 		ELSE RETURN 3;
 		END IF;
+	
 	END;
 	$BODY$;
 
@@ -301,8 +306,87 @@ CREATE OR REPLACE FUNCTION juge_max_simultane(id integer)
 	DECLARE 
 		max_juged_games integer;
 	BEGIN
+		
 		SELECT juge_level(id)*4 INTO max_juged_games;
 		RETURN max_juged_games;
+	
+	END;
+	$BODY$;
+
+CREATE OR REPLACE FUNCTION nb_inscrits_tournoi(id integer)
+	RETURNS integer
+	LANGUAGE plpgsql
+	AS
+	$BODY$
+	DECLARE 
+		nombre_inscrits integer;
+	BEGIN
+		
+		SELECT COUNT(*)
+		FROM TournoiMembreParticipant
+		WHERE idTournoi = id
+		INTO nombre_inscrits;
+		RETURN nombre_inscrits;
+	
+	END;
+	$BODY$;
+
+CREATE OR REPLACE FUNCTION niveau_juges_tournoi(id integer)
+	RETURNS integer
+	LANGUAGE plpgsql
+	AS
+	$BODY$
+	DECLARE 
+		niveau_juges integer;
+	BEGIN
+		
+		SELECT SUM(juge_level(Juge.experience)) INTO niveau_juges
+		FROM Juge
+			INNER JOIN TournoiJuge
+				ON TournoiJuge.idJuge = Juge.idPersonne
+		WHERE idTournoi = id;
+		RETURN niveau_juges;
+	
+	END;
+	$BODY$;
+
+CREATE OR REPLACE FUNCTION tournoi_commence(idTournoi integer)
+	RETURNS boolean
+	LANGUAGE plpgsql
+	AS
+	$BODY$
+	DECLARE
+		date_debut timestamp;
+	BEGIN
+		
+		SELECT dateHeureDebut INTO date_debut
+		FROM Tournoi
+		WHERE idTournoi = id;
+		RETURN date_debut < NOW();
+	
+	END;
+	$BODY$;
+
+CREATE OR REPLACE FUNCTION tournoi_annule(idTournoi integer)
+	RETURNS boolean
+	LANGUAGE plpgsql
+	AS
+	$BODY$
+	DECLARE 
+		tournoi_annule boolean;
+		echelle_tournoi integer;
+		nb_inscrits integer;
+	BEGIN
+		
+		SELECT echelleNbJoueur INTO echelle_tournoi
+			FROM Tournoi
+			WHERE id = idTournoi;
+		SELECT nb_inscrits_tournoi(idTournoi) INTO nb_inscrits;
+		SELECT nb_inscrits < nb_joueur_min(echelle_tournoi) 
+			OR niveau_juges_tournoi(idTournoi) < niveau_min_de_juge_total(echelle_tournoi) 
+			INTO tournoi_annule;
+		RETURN tournoi_annule AND tournoi_commence(idTournoi);
+	
 	END;
 	$BODY$;
 
@@ -317,7 +401,7 @@ CREATE OR REPLACE FUNCTION check_valid_manche()
 AS
 $BODY$
 BEGIN 
-	IF (SELECT count(*)
+	IF (SELECT COUNT(*)
 		FROM Manche
 			WHERE NEW.idTournoi = idTournoi 
 				AND NEW.dateHeureDebut < dateHeureDebut + duree
@@ -340,7 +424,7 @@ CREATE OR REPLACE FUNCTION check_valid_duel()
 AS
 $BODY$
 BEGIN 
-	IF (SELECT count(*)
+	IF (SELECT COUNT(*)
 		FROM Duel
 			INNER JOIN TournoiMembreParticipant
 				ON duel.idtournoi = TournoiMembreParticipant.idtournoi 
@@ -350,7 +434,7 @@ BEGIN
 	THEN 
 		RAISE EXCEPTION 'Un des joueuers n''est pas inscrit au tournoi';
 	END IF;
-	IF (SELECT count(*)
+	IF (SELECT COUNT(*)
 		FROM Duel
 			INNER JOIN TournoiJuge
 				ON duel.idtournoi = TournoiJuge.idtournoi 
@@ -359,7 +443,7 @@ BEGIN
 	THEN 
 		RAISE EXCEPTION 'Ce juge doit être inscrit au tournoi pour juger ce duel';
 	END IF;
-	IF (SELECT count(*)
+	IF (SELECT COUNT(*)
 		FROM Duel 
 		WHERE NEW.idjuge = idjuge
 			AND NEW.idManche = idManche
@@ -368,7 +452,7 @@ BEGIN
 	THEN 
 		RAISE EXCEPTION 'Ce juge ne peut pas juger plus de duel durant ce round';
 	END IF;
-	IF (SELECT count(*)
+	IF (SELECT COUNT(*)
 		FROM Duel 
 		WHERE (NEW.idJoueurUn = idJoueurUn OR NEW.idJoueurDeux = idJoueurDeux)
 			AND NEW.idManche = idManche
@@ -393,7 +477,7 @@ CREATE OR REPLACE FUNCTION check_valid_TournoiMembreParticipant()
 AS
 $BODY$
 BEGIN 
-	IF (SELECT count(*)
+	IF (SELECT COUNT(*)
 		FROM TournoiMembreParticipant
 			LEFT JOIN TournoiJuge
 				ON TournoiMembreParticipant.idtournoi = TournoiJuge.idtournoi 
@@ -421,7 +505,7 @@ CREATE OR REPLACE FUNCTION check_valid_TournoiJuge()
 AS
 $BODY$
 BEGIN 
-	IF (SELECT count(*)
+	IF (SELECT COUNT(*)
 		FROM TournoiJuge
 			INNER JOIN TournoiMembreParticipant
 				ON TournoiMembreParticipant.idtournoi = TournoiJuge.idtournoi 
@@ -445,7 +529,7 @@ CREATE OR REPLACE FUNCTION check_valid_TournoiMembreOrganisateur()
 AS
 $BODY$
 BEGIN 
-	IF (SELECT count(*)
+	IF (SELECT COUNT(*)
 		FROM TournoiMembreOrganisateur
 			INNER JOIN TournoiMembreParticipant 
 				ON TournoiMembreParticipant.idtournoi = TournoiMembreOrganisateur.idtournoi 
