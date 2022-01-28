@@ -104,7 +104,7 @@ function getDuelList() {
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, //set PDO to throw exceptions on error
             PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL, //NULL values are returned as PHP null's
         ]);
-        $duelList = [];
+        $dataList = [];
         $result = $dbh->exec('SET search_path TO wizard');
         $stmt = $dbh->query('
             SELECT duel.id,
@@ -121,7 +121,7 @@ function getDuelList() {
             INNER JOIN Tournoi ON duel.idTournoi = Tournoi.id;
             ');
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $duelList[] = [
+            $dataList[] = [
                 'idDuel' => $row['id'],
                 'idManche' => $row['idmanche'],
                 'idTournoi' => $row['idtournoi'],
@@ -131,7 +131,7 @@ function getDuelList() {
                 'JugeNom' => $row['jugenom']
             ];
         }
-        return $duelList;
+        return $dataList;
     } catch(PDOException $e) {
         die('Unable to get duel list: ' . $e->getMessage());
     }
@@ -143,7 +143,7 @@ function getDuelsByPlayer($id) {
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, //set PDO to throw exceptions on error
             PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL, //NULL values are returned as PHP null's
         ]);
-        $duelList = [];
+        $dataList = [];
         $result = $dbh->exec('SET search_path TO wizard');
         $stmt = $dbh->query('
             SELECT duel.id,
@@ -162,7 +162,7 @@ function getDuelsByPlayer($id) {
                 OR duel.idJoueurDeux = ' . $id . ';
             ');
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $duelList[] = [
+            $dataList[] = [
                 'idDuel' => $row['id'],
                 'idManche' => $row['idmanche'],
                 'idTournoi' => $row['idtournoi'],
@@ -172,7 +172,7 @@ function getDuelsByPlayer($id) {
                 'JugeNom' => $row['jugenom']
             ];
         }
-        return $duelList;
+        return $dataList;
     } catch(PDOException $e) {
         die('Unable to get duel list: ' . $e->getMessage());
     }
@@ -184,7 +184,7 @@ function getDuelsByJudge($id) {
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, //set PDO to throw exceptions on error
             PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL, //NULL values are returned as PHP null's
         ]);
-        $duelList = [];
+        $dataList = [];
         $result = $dbh->exec('SET search_path TO wizard');
         $stmt = $dbh->query('
             SELECT duel.id,
@@ -202,7 +202,7 @@ function getDuelsByJudge($id) {
             WHERE duel.idJuge = ' . $id . ';
             ');
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $duelList[] = [
+            $dataList[] = [
                 'idDuel' => $row['id'],
                 'idManche' => $row['idmanche'],
                 'idTournoi' => $row['idtournoi'],
@@ -212,7 +212,7 @@ function getDuelsByJudge($id) {
                 'JugeNom' => $row['jugenom']
             ];
         }
-        return $duelList;
+        return $dataList;
     } catch(PDOException $e) {
         die('Unable to get duel list: ' . $e->getMessage());
     }
@@ -224,7 +224,7 @@ function getDuelsByTournament($id) {
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, //set PDO to throw exceptions on error
             PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL, //NULL values are returned as PHP null's
         ]);
-        $duelList = [];
+        $dataList = [];
         $result = $dbh->exec('SET search_path TO wizard');
         $stmt = $dbh->query('
             SELECT duel.id,
@@ -242,7 +242,7 @@ function getDuelsByTournament($id) {
             WHERE duel.idTournoi = ' . $id . ';
             ');
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $duelList[] = [
+            $dataList[] = [
                 'idDuel' => $row['id'],
                 'idManche' => $row['idmanche'],
                 'idTournoi' => $row['idtournoi'],
@@ -252,7 +252,7 @@ function getDuelsByTournament($id) {
                 'JugeNom' => $row['jugenom']
             ];
         }
-        return $duelList;
+        return $dataList;
     } catch(PDOException $e) {
         die('Unable to get duel list: ' . $e->getMessage());
     }
@@ -264,7 +264,7 @@ function getDuelDetails($idDuel, $idManche, $idTournoi) {
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, //set PDO to throw exceptions on error
             PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL, //NULL values are returned as PHP null's
         ]);
-        $duelList = [];
+        $dataList = [];
         $result = $dbh->exec('SET search_path TO wizard');
         $stmt = $dbh->query('
             SELECT duel.id,
@@ -295,7 +295,7 @@ function getDuelDetails($idDuel, $idManche, $idTournoi) {
                 AND duel.idTournoi = ' . $idTournoi . ';
             ');
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $duelList[] = [
+            $dataList[] = [
                 'idDuel' => $row['id'],
                 'idManche' => $row['idmanche'],
                 'idTournoi' => $row['idtournoi'],
@@ -310,7 +310,7 @@ function getDuelDetails($idDuel, $idManche, $idTournoi) {
             ];
         }
 
-        return $duelList;
+        return $dataList;
     } catch(PDOException $e) {
         die('Unable to get duel: ' . $e->getMessage());
     }

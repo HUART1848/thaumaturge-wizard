@@ -47,7 +47,7 @@ function getPlayerList() {
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, //set PDO to throw exceptions on error
             PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL, //NULL values are returned as PHP null's
         ]);
-        $playerList = [];
+        $dataList = [];
         $result = $dbh->exec('SET search_path TO wizard');
         $stmt = $dbh->query('
             SELECT Personne.nom, Personne.prenom, Membre.idPersonne
@@ -55,13 +55,13 @@ function getPlayerList() {
             INNER JOIN Personne ON Membre.idPersonne = Personne.id
             ');
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $playerList[] = [
+            $dataList[] = [
                 'nom' => $row['nom'],
                 'prenom' => $row['prenom'],
                 'id' => $row['idpersonne']
             ];
         }
-        return $playerList;
+        return $dataList;
     } catch(PDOException $e) {
         die('Unable to get player list: ' . $e->getMessage());
     }
@@ -73,7 +73,7 @@ function getPlayerDetails($id) {
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, //set PDO to throw exceptions on error
             PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL, //NULL values are returned as PHP null's
         ]);
-        $playerList = [];
+        $dataList = [];
         $result = $dbh->exec('SET search_path TO wizard');
         $stmt = $dbh->query('
         SELECT Personne.nom, Personne.prenom, Adresse.ville, Adresse.pays, Membre.idPersonne, Membre.numeroMembre
@@ -83,7 +83,7 @@ function getPlayerDetails($id) {
             WHERE Membre.idPersonne = ' . $id
         );
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $playerList[] = [
+            $dataList[] = [
                 'nom' => $row['nom'],
                 'prenom' => $row['prenom'],
                 'ville' => $row['ville'],
@@ -93,7 +93,7 @@ function getPlayerDetails($id) {
             ];
         }
 
-        return $playerList;
+        return $dataList;
     } catch(PDOException $e) {
         die('Unable to get player: ' . $e->getMessage());
     }

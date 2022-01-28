@@ -369,6 +369,24 @@ CREATE OR REPLACE FUNCTION tournoi_commence(idTournoi integer)
 	END;
 	$BODY$;
 
+CREATE OR REPLACE FUNCTION tournoi_termine(idTournoi integer)
+	RETURNS boolean
+	LANGUAGE plpgsql
+	AS
+	$BODY$
+	DECLARE
+		date_fin timestamp;
+		delai_admin time;
+	BEGIN
+
+		SELECT dateFin, delaiAdmin INTO date_fin, delai_admin
+		FROM Tournoi
+		WHERE idTournoi = id;
+		RETURN dateHeureFin + delai_admin < NOW();
+
+	END;
+	$BODY$;
+
 CREATE OR REPLACE FUNCTION tournoi_annule(idTournoi integer)
 	RETURNS boolean
 	LANGUAGE plpgsql
@@ -393,7 +411,7 @@ CREATE OR REPLACE FUNCTION tournoi_annule(idTournoi integer)
 	$BODY$;
 
 CREATE OR REPLACE FUNCTION classement_tournoi(pId integer)
-RETURNS TABLE (nom TEXT, prenom TEXT, numeroMembre SMALLINT, score INTEGER)
+RETURNS TABLE (nom TEXT, prenom TEXT, numeroMembre SMALLINT, score BIGINT)
 LANGUAGE plpgsql
 AS
 $BODY$
