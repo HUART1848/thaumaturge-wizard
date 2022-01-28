@@ -9,19 +9,8 @@ decks = {"Burkina" :
 3 Plains
 3 Mountain
 3 Swamp
-3 Island
-2 Forest
-4 Temple of the Dragon Queen
-1 Volatile Fjord
-4 Torens, Fist of the Angels
-1 Vault Robber
-1 Selhoff Entomber
-1 Jerren, Corrupted Bishop
-2 Replicating Ring
-1 Team Pennant
-3 Borrowed Time
 4 Contact Other Plane
-1 Ghoulcaller's Harvest
+1 Ghoulcallers Harvest
 3 Secret Rendezvous
 4 Curse of Surveillance
 3 Arni Slays the Troll
@@ -32,22 +21,13 @@ decks = {"Burkina" :
 1 Old-Growth Troll
 2 Blackbloom Rogue // Blackbloom Bog
 4 Grinning Ignus
-4 Kazuul's Fury // Kazuul's Cliffs
+4 Kazuuls Fury // Kazuuls Cliffs
 3 Plains
 3 Mountain
 3 Swamp
 2 Island
 2 Forest
 4 Gates of Istfell
-2 The Biblioplex
-1 Deserted Beach
-3 Fearless Fledgling
-2 Ambitious Farmhand // Seasoned Cathar
-1 Mirrorhall Mimic // Ghastly Mimicry
-1 Spare Supplies
-1 Poet's Quill
-2 Dramatic Finale
-1 Deadly Dispute
 4 Elemental Masterpiece
 4 Ancient Lumberknot
 2 Introduction to Prophecy
@@ -55,7 +35,7 @@ decks = {"Burkina" :
 1 Surtland Flinger
 3 Flamescroll Celebrant // Revel in Silence""",
 
-"Pétunia" : """1 Arlinn, the Pack's Hope
+"Pétunia" : """1 Arlinn, the Packs Hope
 1 Glasspool Mimic // Glasspool Shore
 3 Shattered Sanctum
 4 Darkbore Pathway // Slitherbore Pathway
@@ -64,20 +44,6 @@ decks = {"Burkina" :
 3 Mountain
 3 Swamp
 3 Island
-2 Forest
-1 Cave of the Frost Dragon
-2 Resistance Squad
-2 Bird Admirer // Wing Shredder
-4 Outland Liberator // Frenzied Trapbreaker
-1 Valentin, Dean of the Vein // Lisette, Dean of the Root
-2 Cliffhaven Sell-Sword
-1 Hopeful Initiate
-1 Blood Fountain
-1 Mystic Skull // Mystic Monstrosity
-1 Relic Golem
-3 Borrowed Time
-3 Augmenter Pugilist // Echoing Equation
-3 Sudden Breakthrough
 1 Delver of Secrets // Insectile Aberration
 4 Nebelgast Intruder
 2 Aberrant Mind Sorcerer
@@ -90,26 +56,6 @@ decks = {"Burkina" :
 1 Furycalm Snarl
 2 Valakut Awakening // Valakut Stoneforge
 1 Lair of the Hydra
-3 Plains
-3 Mountain
-3 Swamp
-3 Island
-2 Forest
-4 Clearwater Pathway // Murkwater Pathway
-2 Soothsayer Adept
-2 Spectacle Mage
-3 Candlegrove Witch
-4 Lunarch Veteran // Luminous Phantom
-1 Odric, Blood-Cursed
-3 Trickster's Talisman
-1 Circle of Confinement
-2 Cradle of Safety
-3 Revenge of the Drowned
-3 Closing Statement
-2 Confounding Conundrum
-1 Chilling Trap
-1 Alluring Suitor // Deadly Dancer
-2 Feed the Serpent
 2 Turntimber Ascetic"""}
 
 cities = ["Yverdon-les-Bains", "Yverdon-les-Bains", "Lausanne", "Bienne", "Fribourg", "Paris",
@@ -119,6 +65,18 @@ tournaments = [8, 8, 16, 8, 32, 8, 32, 16, 8, 8]
 
 def genTournament(tid, manche_cnt, juge, players):
     p = players.copy()
+    print("\n/*Assignation des decks*/")
+    for player in p:
+        name = player["lastname"]
+        firstname = player["firstname"]
+        pid = player["id"]
+        alldecks = list(decks.items())
+        deck = random.choice(alldecks)
+        deckname, cardlist = deck
+        print(f"CALL createParticipantFromPersonne({pid}::SMALLINT, {tid}::SMALLINT, '{deckname}'::TEXT, '{cardlist}'::TEXT);")
+
+    jid = juge["id"]
+    print("\n/*Création des manches et duels*/")
     while len(p) > 1:
         print(f"CALL registerManche({tid}::SMALLINT, '2020-01-01 12:00', '10 minutes');")
         j = 1
@@ -126,15 +84,10 @@ def genTournament(tid, manche_cnt, juge, players):
             p1 = p[j-1]
             p2 = p[j]
 
-            p1name = p1["lastname"]
-            p1firstname = p1["firstname"]
             p1id = p1["id"]
-
-            p2name = p2["lastname"]
-            p2firstname = p2["firstname"]
             p2id = p2["id"]
 
-            print(f"CALL registerDuel({manche_cnt}::SMALLINT, )")
+            print(f"CALL registerDuel({manche_cnt}::SMALLINT, {tid}::SMALLINT, {jid}::SMALLINT, {p1id}::SMALLINT, {p2id}::SMALLINT, {p1id}::SMALLINT);")
             j += 2
         p = p[0:len(p):2]
 
@@ -153,7 +106,7 @@ def printCreatePersonne(p):
 def printJudge(j):
     printCreatePersonne(j)
     id = j["id"]
-    print(f"CALL createJudgeFromPersonne({id}::SMALLINT, {random.choice([1,2,3])}::INT);")
+    print(f"CALL createJugeFromPersonne({id}::SMALLINT, {random.choice([1,2,3])}::INT);")
 
 
 cnt_player = 1
@@ -177,7 +130,6 @@ for tid in range(1, len(tournaments) + 1):
     printJudge(juge)
     cnt_player += 1
 
-    print("\n/*Création des manches et duels*/")
     cur_players = random.sample(players, tournaments[tid-1])
     genTournament(tid, cnt_manche, juge, cur_players)
     print()
