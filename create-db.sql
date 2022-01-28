@@ -69,7 +69,7 @@ CREATE TABLE Tournoi (
 	format TEXT NOT NULL,
 	echelleNbJoueur SMALLINT NOT NULL , /* peut aussi être considerer come le nombre max de joueur */
 	idAdresse SMALLINT NOT NULL,
-	CONSTRAINT CK_Tournoi_dateHeureDebut_dateHeureFin CHECK (dateHeureFin > dateHeureDebut AND (dateHeureDebut - dateHeureFin) > (INTERVAL '80m' * nb_rounds(echelleNbJoueur) + INTERVAL '60m')),
+	CONSTRAINT CK_Tournoi_dateHeureDebut_dateHeureFin CHECK (dateHeureFin > dateHeureDebut AND (dateHeureFin - dateHeureDebut) > (INTERVAL '80m' * nb_rounds(echelleNbJoueur) + INTERVAL '60m')),
 	CONSTRAINT CK_Tournoi_echelleNbJoueur CHECK (echelleNbJoueur = 8 OR echelleNbJoueur = 16 OR echelleNbJoueur = 32 OR echelleNbJoueur = 64),
 	PRIMARY KEY (id)
 );

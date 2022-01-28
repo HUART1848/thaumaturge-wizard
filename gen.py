@@ -83,6 +83,9 @@ def genTournament(tid, manche_cnt, starttime, juge, players):
     jid = juge["id"]
     print(f"CALL assignJudgeToTournoi({jid}::SMALLINT, {tid}::SMALLINT);")
 
+    print("\n/*Assignation de l'organisateur*/")
+    print(f"CALL assignJudgeAsOrganisateur({jid}::SMALLINT, {tid}::SMALLINT);")
+
     print("\n/*Assignation des decks*/")
     for player in p:
         name = player["lastname"]
