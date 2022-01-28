@@ -1,9 +1,12 @@
 /** PROCEDURES **/
-CREATE OR REPLACE PROCEDURE createPersonne(_nom TEXT, _prenom TEXT, _ville TEXT)
+CREATE OR REPLACE PROCEDURE createMembre(_nom TEXT, _prenom TEXT, _ville TEXT)
 LANGUAGE plpgsql
 AS $BODY$
+DECLARE
+	idp SMALLINT;
 BEGIN 
-	INSERT INTO personne(nom, prenom, idadresse) VALUES (_nom, _prenom, (SELECT id FROM adresse WHERE adresse.ville = _ville));
+	INSERT INTO personne(nom, prenom, idadresse) VALUES (_nom, _prenom, (SELECT id FROM adresse WHERE adresse.ville = _ville)) RETURNING id INTO idp;
+	INSERT INTO membre(idpersonne) VALUES (idp);
 END
 $BODY$;
 
@@ -11,7 +14,6 @@ CREATE OR REPLACE PROCEDURE createParticipantFromPersonne(_idpersonne SMALLINT ,
 LANGUAGE plpgsql 
 AS $BODY$ 
 BEGIN
-	INSERT INTO membre(idpersonne) VALUES (_idpersonne);
 	INSERT INTO tournoimembreparticipant(idmembre, idtournoi, nomdudeck, cardlist) VALUES (_idpersonne, _idtournoi, _nomdudeck, _cardlist);
 END
 $BODY$;
@@ -20,7 +22,6 @@ CREATE OR REPLACE PROCEDURE createOrganisateurFromPersonne(_idpersonne SMALLINT,
 LANGUAGE plpgsql
 AS $BODY$ 
 BEGIN 
-	INSERT INTO membre(idpersonne) VALUES (_idpersonne);
 	INSERT INTO tournoimembreorganisateur(idorg, idtournoi) VALUES (_idpersonne, _idtournoi);
 END
 $BODY$;
@@ -37,7 +38,6 @@ CREATE OR REPLACE PROCEDURE assignJudgeToTournoi(_idpersonne SMALLINT, _idtourno
 LANGUAGE plpgsql
 AS $BODY$ 
 BEGIN
-	INSERT INTO membre(idpersonne) VALUES (_idpersonne);
 	INSERT INTO tournoijuge(idjuge, idtournoi) VALUES (_idpersonne, _idtournoi);
 END
 $BODY$;
@@ -149,3 +149,5 @@ $BODY$;
 			'2022-07-03 17:30',
 			'2022-07-17 00:00',
 			'Standard', 8, 1);
+
+CALL createMembre('Bob', 'Michael', 'Paris');

@@ -286,7 +286,7 @@ CREATE OR REPLACE FUNCTION Juge_level(id integer)
 		FROM Juge
 		WHERE Juge.idPersonne = id;
 
-		IF juge_exp <= 3
+		IF juge_exp < 15 /* à la fin d'um tournoi on gagne 5 pts si on y était juge, un juge de lvl 0 doit faire 3 tournoi avant de "vraiment devenir juge" */
 			THEN RETURN 0;
 		ELSEIF juge_exp <= 100
 			THEN RETURN 1;
@@ -558,7 +558,7 @@ BEGIN
 	THEN
 		RAISE EXCEPTION 'On ne peut pas juge d''un tournoi auquel on participe';
 	END IF;
-	IF get_nb_concurent_tournament(NEW.idMembre, NEW.idTournoi) > 1
+	IF get_nb_concurent_tournament(NEW.idJuge, NEW.idTournoi) > 1
 	THEN
 		RAISE EXCEPTION 'On ne peut pas participer à plusieur tournoi qui se passent en même temps';
 	END IF;
@@ -586,7 +586,7 @@ BEGIN
 	THEN
 		RAISE EXCEPTION 'On ne peut pas être organisateur d''un tournoi auquel on participe';
 	END IF;
-	IF get_nb_concurent_tournament(NEW.idMembre, NEW.idTournoi) > 1
+	IF get_nb_concurent_tournament(NEW.idOrg, NEW.idTournoi) > 1
 	THEN
 		RAISE EXCEPTION 'On ne peut pas participer à plusieur tournoi qui se passent en même temps';
 	END IF;

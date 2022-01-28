@@ -121,14 +121,14 @@ def genPlayer(cnt):
             "lastname" : names.get_last_name(),
             "ville" : random.choice(cities)}
 
-def printCreatePersonne(p):
+def printCreateMembre(p):
     name = p["lastname"]
     firstname = p["firstname"]
     ville = p["ville"]
-    print(f"CALL createPersonne('{name}', '{firstname}', '{ville}');")
+    print(f"CALL createMembre('{name}', '{firstname}', '{ville}');")
 
 def printJudge(j):
-    printCreatePersonne(j)
+    printCreateMembre(j)
     id = j["id"]
     print(f"CALL createJugeFromPersonne({id}::SMALLINT, {random.choice([1,2,3])}::INT);")
 
@@ -140,7 +140,7 @@ players = []
 print("/*Création des joueurs*/")
 for i in range(64):
     new_player = genPlayer(cnt_player)
-    printCreatePersonne(new_player)
+    printCreateMembre(new_player)
 
     players.append(new_player)
     cnt_player += 1
