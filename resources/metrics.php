@@ -4,7 +4,6 @@ require_once(__DIR__ . "/page-factory.php");
 
 $metrics_path = "metrics/";
 $metrics = array(
-    "Performance personnelle par format" => "personal-performance.php",
     "Meilleurs joueurs par format" => "best-players-per-format.php",
     "Meilleurs joueurs tout formats confondus" => "best-players-overall.php",
     "Formats de tournois les plus populaires" => "tournaments-format-popularity.php",
