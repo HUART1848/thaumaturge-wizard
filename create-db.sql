@@ -558,7 +558,7 @@ BEGIN
 	THEN 
 		RAISE EXCEPTION 'On ne peut pas juge d''un tournoi auquel on participe';
 	END IF;
-	IF get_nb_concurent_tournament(NEW.idMembre, NEW.idTournoi) > 1
+	IF get_nb_concurent_tournament(NEW.idJuge, NEW.idTournoi) > 1
 	THEN 
 		RAISE EXCEPTION 'On ne peut pas participer à plusieur tournoi qui se passent en même temps';
 	END IF;
@@ -586,7 +586,7 @@ BEGIN
 	THEN 
 		RAISE EXCEPTION 'On ne peut pas être organisateur d''un tournoi auquel on participe';
 	END IF;
-	IF get_nb_concurent_tournament(NEW.idMembre, NEW.idTournoi) > 1
+	IF get_nb_concurent_tournament(NEW.idOrg, NEW.idTournoi) > 1
 	THEN 
 		RAISE EXCEPTION 'On ne peut pas participer à plusieur tournoi qui se passent en même temps';
 	END IF;
