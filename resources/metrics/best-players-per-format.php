@@ -7,18 +7,20 @@ $page->setHttpCode(HttpCodes::REQUEST_VALID);
 
 $page->addValueToPage("<h1>Meilleurs joueurs par format</h1>");
 
-if (isset($_GET['id'])) {
-    /* TODO data mapping display */
+if (isset($_GET['format'])) {
+    $pageContent = getFormatScore($_GET['format']);
+    foreach ($pageContent as $row) {
+        $page->addValueToPage($row['prenom'] . " " . $row["nom"] . " : " . $row['score']);
+    }
 } else {
-    die("Invalid query: no ID in GET");
+    die("Invalid query: no format in GET");
 }
 
 $page->addLinkToPage("Retour aux métriques", "metrics.php", "../");
 
 $page->getInstance()->render();
 
-
-function getPlayersList() {
+function getFormatScore($id) {
     try {
         $dbh = new PDO('pgsql:host=localhost;port=5432;dbname=postgres;', 'root', 'root', [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, //set PDO to throw exceptions on error
@@ -26,7 +28,7 @@ function getPlayersList() {
         ]);
         $dataList = [];
         $result = $dbh->exec('SET search_path TO wizard');
-        $stmt = $dbh->query('
+        $stmt = $dbh->query("
             SELECT
                 Personne.nom,
                 Personne.prenom,
@@ -43,18 +45,20 @@ function getPlayersList() {
                     OR Duel.idJoueurDeux = Membre.idPersonne
             INNER JOIN Tournoi
                 ON Duel.idTournoi = Tournoi.id
-            WHERE Tournoi.format = ' . $_GET['id'] . '
+            WHERE Tournoi.format = '" . $id . "'
             GROUP BY (Personne.nom, Personne.prenom, Membre.numeroMembre)
             ORDER BY score DESC;
-            ');
+            ");
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             $dataList[] = [
-                /* TODO data mapping */
+                'nom' => $row['nom'],
+                'prenom' => $row['prenom'],
+                'score' => $row['score']
             ];
         }
         return $dataList;
     } catch(PDOException $e) {
-        die('Unable to get player list: ' . $e->getMessage());
+        die('Unable to get score list: ' . $e->getMessage());
     }
 }
 

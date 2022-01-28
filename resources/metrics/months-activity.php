@@ -41,10 +41,4 @@ function getMonthActivity() {
     }
 }
 
-/*
-select DATE_TRUNC('month',tournoi.dateheuredebut) as mois, COUNT(id) as nbtournois
-from tournoi
-group by mois
-order by nbtournois desc
-*/
 ?>

@@ -7,15 +7,16 @@ $page->setHttpCode(HttpCodes::REQUEST_VALID);
 
 $page->addValueToPage("<h1>Meilleurs joueurs tout formats confondus</h1>");
 
-/* TODO call function and map data to display */
-
 $page->addLinkToPage("Retour aux métriques", "metrics.php", "../");
 
-
+$pageContent = getBestPlayers();
+foreach ($pageContent as $row) {
+    $page->addValueToPage($row['prenom'] . " " . $row["nom"] . " : " . $row['score']);
+}
 
 $page->getInstance()->render();
 
-function getPlayersList() {
+function getBestPlayers() {
     try {
         $dbh = new PDO('pgsql:host=localhost;port=5432;dbname=postgres;', 'root', 'root', [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, //set PDO to throw exceptions on error
@@ -43,7 +44,9 @@ function getPlayersList() {
             ');
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             $dataList[] = [
-                /* TODO data mapping */
+                'nom' => $row['nom'],
+                'prenom' => $row['prenom'],
+                'score' => $row['score']
             ];
         }
         return $dataList;
