@@ -283,7 +283,7 @@ CREATE OR REPLACE FUNCTION Juge_level(id integer)
 	BEGIN
 		
 		SELECT Juge.experience INTO juge_exp
-		FROM Juge 
+		FROM Juge
 		WHERE Juge.idPersonne = id;
 	
 		IF juge_exp <= 3
@@ -292,7 +292,9 @@ CREATE OR REPLACE FUNCTION Juge_level(id integer)
 			THEN RETURN 1;
 		ELSEIF juge_exp <= 300
 			THEN RETURN 2;
-		ELSE RETURN 3;
+		ELSEIF juge_exp >= 0 
+			THEN RETURN 3;
+		ELSE RETURN NULL;
 		END IF;
 	
 	END;
@@ -340,7 +342,7 @@ CREATE OR REPLACE FUNCTION niveau_juges_tournoi(id integer)
 		niveau_juges integer;
 	BEGIN
 		
-		SELECT SUM(juge_level(Juge.experience)) INTO niveau_juges
+		SELECT SUM(juge_level(Juge.idPersonne)) INTO niveau_juges
 		FROM Juge
 			INNER JOIN TournoiJuge
 				ON TournoiJuge.idJuge = Juge.idPersonne
@@ -472,6 +474,42 @@ FOR EACH ROW EXECUTE FUNCTION check_valid_Duel();
 
 /* Exclusion jouer - juge/organisateur et exclusion d'inbscription à des tournois simultané*/
 
+/* donne le nombre de tournoi se passant en même temps qu'un tournoi en particulier où un personne distincte est inscrite */
+CREATE OR REPLACE FUNCTION get_nb_concurent_tournament(idPersonne integer, idTournoiC integer)
+	RETURNS integer
+	LANGUAGE plpgsql
+AS
+$BODY$
+DECLARE 
+	to_return integer;
+	startDate TIMESTAMP;
+	endDate TIMESTAMP;
+BEGIN
+	SELECT Tournoi.dateHeureDebut INTO startDate
+	FROM Tournoi
+	WHERE Tournoi.id = idTournoiC;
+	
+	SELECT Tournoi.dateHeureFin INTO endDate
+	FROM Tournoi
+	WHERE Tournoi.id = idTournoiC;
+	
+	SELECT COUNT(*) INTO to_return
+	FROM Tournoi 
+		INNER JOIN TournoiMembreParticipant
+			ON Tournoi.id = TournoiMembreParticipant.idTournoi 
+			AND TournoiMembreParticipant.idMembre = idPersonne
+		INNER JOIN TournoiMembreOrganisateur
+			ON Tournoi.id = TournoiMembreOrganisateur.idTournoi 
+			AND TournoiMembreOrganisateur.idOrg = idPersonne
+		INNER JOIN TournoiJuge
+			ON Tournoi.id = TournoiJuge.idTournoi 
+			AND TournoiJuge.idJuge = idPersonne
+	WHERE Tournoi.dateHeureDebut BETWEEN startDate AND endDate OR Tournoi.dateHeureFin BETWEEN startDate AND endDate;
+
+	RETURN to_return;
+END;
+$BODY$;
+
 /* joueur */
 CREATE OR REPLACE FUNCTION check_valid_TournoiMembreParticipant()
 	RETURNS TRIGGER 
@@ -482,15 +520,19 @@ BEGIN
 	IF (SELECT COUNT(*)
 		FROM TournoiMembreParticipant
 			LEFT JOIN TournoiJuge
-				ON NEW.idtournoi = TournoiJuge.idtournoi 
-				AND NEW.idmembre = TournoiJuge.idjuge
+				ON NEW.idTournoi = TournoiJuge.idTournoi 
+				AND NEW.idMembre = TournoiJuge.idJuge
 			LEFT JOIN TournoiMembreOrganisateur 
-				ON NEW.idtournoi = TournoiMembreOrganisateur.idtournoi 
-				AND NEW.idmembre = TournoiMembreOrganisateur.idorg 
-		WHERE TournoiJuge.idjuge IS NOT NULL OR TournoiMembreOrganisateur.idorg IS NOT NULL
+				ON NEW.idTournoi = TournoiMembreOrganisateur.idTournoi 
+				AND NEW.idMembre = TournoiMembreOrganisateur.idOrg 
+		WHERE TournoiJuge.idJuge IS NOT NULL OR TournoiMembreOrganisateur.idOrg IS NOT NULL
 		) > 0
 	THEN 
 		RAISE EXCEPTION 'On ne peut pas participer à un tournoi qu''on organise et/ou juge';
+	END IF;
+	IF get_nb_concurent_tournament(NEW.idMembre, NEW.idTournoi) > 1
+	THEN 
+		RAISE EXCEPTION 'On ne peut pas participer à plusieur tournoi qui se passent en même temps';
 	END IF;
 	RETURN NULL;
 END;
@@ -510,11 +552,15 @@ BEGIN
 	IF (SELECT COUNT(*)
 		FROM TournoiJuge
 			INNER JOIN TournoiMembreParticipant
-				ON TournoiMembreParticipant.idtournoi = NEW.idtournoi 
-				AND TournoiMembreParticipant.idmembre = NEW.idjuge
+				ON TournoiMembreParticipant.idTournoi = NEW.idTournoi 
+				AND TournoiMembreParticipant.idMembre = NEW.idJuge
 		) > 0
 	THEN 
 		RAISE EXCEPTION 'On ne peut pas juge d''un tournoi auquel on participe';
+	END IF;
+	IF get_nb_concurent_tournament(NEW.idMembre, NEW.idTournoi) > 1
+	THEN 
+		RAISE EXCEPTION 'On ne peut pas participer à plusieur tournoi qui se passent en même temps';
 	END IF;
 	RETURN NULL;
 END;
@@ -524,7 +570,7 @@ CREATE OR REPLACE TRIGGER on_new_or_change_TournoiJuge
 AFTER INSERT OR UPDATE ON TournoiJuge
 FOR EACH ROW EXECUTE FUNCTION check_valid_TournoiJuge();
 
-/* joueur */
+/* organisateur */
 CREATE OR REPLACE FUNCTION check_valid_TournoiMembreOrganisateur()
 	RETURNS TRIGGER 
 	LANGUAGE plpgsql
@@ -534,11 +580,15 @@ BEGIN
 	IF (SELECT COUNT(*)
 		FROM TournoiMembreOrganisateur
 			INNER JOIN TournoiMembreParticipant 
-				ON TournoiMembreParticipant.idtournoi = NEW.idtournoi 
-				AND TournoiMembreParticipant.idmembre = NEW.idorg 
+				ON TournoiMembreParticipant.idTournoi = NEW.idTournoi 
+				AND TournoiMembreParticipant.idMembre = NEW.idOrg 
 		) > 0
 	THEN 
 		RAISE EXCEPTION 'On ne peut pas être organisateur d''un tournoi auquel on participe';
+	END IF;
+	IF get_nb_concurent_tournament(NEW.idMembre, NEW.idTournoi) > 1
+	THEN 
+		RAISE EXCEPTION 'On ne peut pas participer à plusieur tournoi qui se passent en même temps';
 	END IF;
 	RETURN NULL;
 END;
