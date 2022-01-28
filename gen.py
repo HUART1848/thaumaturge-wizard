@@ -78,6 +78,11 @@ tournaments_dates = [
 
 def genTournament(tid, manche_cnt, starttime, juge, players):
     p = players.copy()
+
+    print("\n/*Assignation du juge*/")
+    jid = juge["id"]
+    print(f"CALL assignJudgeToTournoi({jid}::SMALLINT, {tid}::SMALLINT);")
+
     print("\n/*Assignation des decks*/")
     for player in p:
         name = player["lastname"]
@@ -88,7 +93,6 @@ def genTournament(tid, manche_cnt, starttime, juge, players):
         deckname, cardlist = deck
         print(f"CALL createParticipantFromPersonne({pid}::SMALLINT, {tid}::SMALLINT, '{deckname}'::TEXT, '{cardlist}'::TEXT);")
 
-    jid = juge["id"]
     print("\n/*Création des manches et duels*/")
     curtime = starttime
     while len(p) > 1:
