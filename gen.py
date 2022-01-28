@@ -1,3 +1,4 @@
+from cgitb import small
 import datetime, names, random
 from tracemalloc import start
 
@@ -76,15 +77,29 @@ tournaments_dates = [
     datetime.datetime(2022, 7, 3, 10, 0),
 ]
 
-def genTournament(tid, manche_cnt, starttime, juge, players):
+def genTournament(tid, cnt_manche, starttime, cnt_player, players):
     p = players.copy()
 
-    print("\n/*Assignation du juge*/")
-    jid = juge["id"]
+    print("\n/*Création d'un juge débutant'*/")
+    smalljuge = genPlayer(cnt_player)
+    cnt_player += 1
+    printCreateMembre(smalljuge)
+    jid = smalljuge["id"]
+    print(f"CALL createJugeFromPersonne({jid}::SMALLINT, 0::SMALLINT);")
     print(f"CALL assignJudgeToTournoi({jid}::SMALLINT, {tid}::SMALLINT);")
 
-    print("\n/*Assignation de l'organisateur*/")
-    print(f"CALL assignJudgeAsOrganisateur({jid}::SMALLINT, {tid}::SMALLINT);")
+    print("\n/*Création des juges dont un organisateur*/")
+    juges = []
+    for j in range(int(len(players) / 2)):
+        newj = genPlayer(cnt_player)
+        juges.append(newj)
+        cnt_player += 1
+        printCreateMembre(newj)
+        jid = newj["id"]
+        print(f"CALL createJugeFromPersonne({jid}::SMALLINT, {random.randint(200, 500)}::SMALLINT);")
+        print(f"CALL assignJudgeToTournoi({jid}::SMALLINT, {tid}::SMALLINT);")
+        if j == 0:
+            print(f"CALL assignJudgeAsOrganisateur({jid}::SMALLINT, {tid}::SMALLINT);\n")
 
     print("\n/*Assignation des decks*/")
     for player in p:
@@ -101,7 +116,7 @@ def genTournament(tid, manche_cnt, starttime, juge, players):
     while len(p) > 1:
         timestr = curtime.strftime("%Y-%m-%d %H:%M")
         print(f"CALL registerManche({tid}::SMALLINT, '{timestr}', INTERVAL '10m');")
-        curtime += datetime.timedelta(minutes=10)
+        curtime += datetime.timedelta(minutes=12)
         j = 1
         while j < len(p):
             p1 = p[j-1]
@@ -109,11 +124,12 @@ def genTournament(tid, manche_cnt, starttime, juge, players):
 
             p1id = p1["id"]
             p2id = p2["id"]
-
-            print(f"CALL registerDuel({manche_cnt}::SMALLINT, {tid}::SMALLINT, {jid}::SMALLINT, {p1id}::SMALLINT, {p2id}::SMALLINT, {p1id}::SMALLINT);")
+            jid = random.choice(juges)["id"]
+            print(f"CALL registerDuel({cnt_manche}::SMALLINT, {tid}::SMALLINT, {jid}::SMALLINT, {p1id}::SMALLINT, {p2id}::SMALLINT, {p1id}::SMALLINT);")
             j += 2
-        manche_cnt += 1
+        cnt_manche += 1
         p = p[0:len(p):2]
+    return cnt_player, cnt_manche
 
 def genPlayer(cnt):
     return {"id" : cnt, 
@@ -147,13 +163,8 @@ for i in range(64):
 
 print("\n/*Peuplage des tournois */\n")
 for tid in range(1, len(tournaments) + 1):
-    print(f"/*Tournoi #{tid}*/")
-
-    print("/*Création du juge*/")
-    juge = genPlayer(cnt_player);
-    printJudge(juge)
-    cnt_player += 1
+    print(f"/**Tournoi #{tid}**/")
 
     cur_players = random.sample(players, tournaments[tid-1])
-    genTournament(tid, cnt_manche, tournaments_dates[tid-1], juge, cur_players)
+    cnt_player, cnt_manche = genTournament(tid, cnt_manche, tournaments_dates[tid-1], cnt_player, cur_players)
     print()
