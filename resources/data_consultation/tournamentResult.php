@@ -24,6 +24,8 @@ if (isset($_GET['id'])) {
                                     );
         }
     }
+    $page->addValueToPage("<br />");
+    $page->addLinkToPage("Retour à l'index des données", "data_access.php", "../");
     $page->getInstance()->render();
 } else {
     die("Error: Unset tournament ID for results.");
