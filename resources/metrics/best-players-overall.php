@@ -11,7 +11,7 @@ $page->addLinkToPage("Retour aux métriques", "metrics.php", "../");
 
 $pageContent = getBestPlayers();
 foreach ($pageContent as $row) {
-    $page->addValueToPage($row['prenom'] . " " . $row["nom"] . " : " . $row['score']);
+    $page->addKeyValueToPage($row['prenom'] . " " . $row["nom"], $row['score']);
 }
 
 $page->getInstance()->render();

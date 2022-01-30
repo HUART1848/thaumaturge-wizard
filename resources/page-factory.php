@@ -160,7 +160,7 @@ class PageFactory {
     }
 
     private function generatePageHeader() {
-        $output  = '<html>';
+        $output   = '<html>';
         $output  .= '<head>';
         $output  .= '<title>'.$this->title.'</title>';
         $output  .= '<style> body { ';
